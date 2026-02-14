@@ -87,4 +87,3 @@ def fetch_video_stats(video_url: str) -> dict:
         "comment_count": int(stats.get('commentCount', 0)),
         "timestamp": kst_now.strftime('%Y-%m-%d %H:%M:%S')
     }
-    }

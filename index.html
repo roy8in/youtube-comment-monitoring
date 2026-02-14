@@ -7,13 +7,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; padding: 20px; font-family: 'Pretendard', sans-serif; }
+        body { background-color: #f4f7f6; padding: 20px; font-family: 'Pretendard', -apple-system, sans-serif; }
         .card { margin-bottom: 25px; border: none; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
         .table thead { background-color: #ebf0f5; }
-        /* 감성 칸 줄바꿈 방지 및 너비 확보 */
         .col-sentiment { white-space: nowrap; width: 100px; text-align: center; font-weight: bold; }
         .col-keyword { width: 150px; font-weight: 500; }
-        .chart-container { min-height: 400px; }
+        .chart-container { min-height: 400px; display: flex; align-items: center; justify-content: center; }
+        .empty-msg { color: #adb5bd; font-style: italic; }
     </style>
 </head>
 <body>
@@ -24,18 +24,18 @@
 
     <div class="container">
         <div class="card p-4">
-            <div id="viewChart" class="chart-container"></div>
+            <div id="viewChart" class="chart-container"><span class="empty-msg">조회수 데이터를 불러오는 중...</span></div>
         </div>
 
         <div class="row">
             <div class="col-lg-6">
                 <div class="card p-4">
-                    <div id="sentimentChart" class="chart-container"></div>
+                    <div id="sentimentChart" class="chart-container"><span class="empty-msg">감성 분석 데이터 대기 중...</span></div>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="card p-4">
-                    <div id="keywordChart" class="chart-container"></div>
+                    <div id="keywordChart" class="chart-container"><span class="empty-msg">키워드 데이터 대기 중...</span></div>
                 </div>
             </div>
         </div>
@@ -60,10 +60,13 @@
     <script>
         const config = { responsive: true };
 
-        // 1. 영상 통계 (조회수)
+        // 1. 영상 통계 처리
         Papa.parse("video_stats.csv", {
-            download: true, header: true, complete: function(results) {
-                const data = results.data.filter(d => d.timestamp);
+            download: true, header: true, skipEmptyLines: true,
+            complete: function(results) {
+                const data = results.data.filter(d => d.timestamp && d.view_count);
+                if (data.length === 0) return;
+
                 const trace = {
                     x: data.map(d => d.timestamp),
                     y: data.map(d => d.view_count),
@@ -71,17 +74,25 @@
                     line: {color: '#007bff', width: 3},
                     marker: {size: 8}
                 };
-                const layout = { title: '<b>시간대별 누적 조회수 추이</b>', margin: {t:50, b:50, l:50, r:20} };
+                const layout = { 
+                    title: '<b>시간대별 누적 조회수 추이 (KST)</b>',
+                    margin: {t:50, b:50, l:60, r:20},
+                    xaxis: { title: '시간' },
+                    yaxis: { title: '조회수' }
+                };
+                document.getElementById('viewChart').innerHTML = "";
                 Plotly.newPlot('viewChart', [trace], layout, config);
             }
         });
 
-        // 2. 감성 및 키워드 분석
+        // 2. 감성 및 키워드 분석 처리
         Papa.parse("analyzed_comments.csv", {
-            download: true, header: true, complete: function(results) {
-                const data = results.data.filter(d => d.sentiment);
-                
-                // [감성 차트 데이터]
+            download: true, header: true, skipEmptyLines: true,
+            complete: function(results) {
+                const data = results.data.filter(d => d.sentiment && d.text);
+                if (data.length === 0) return;
+
+                // [감성 차트]
                 const sCounts = {};
                 data.forEach(d => sCounts[d.sentiment] = (sCounts[d.sentiment] || 0) + 1);
                 const pieData = [{
@@ -89,11 +100,12 @@
                     labels: Object.keys(sCounts),
                     type: 'pie',
                     hole: 0.4,
-                    marker: {colors: ['#EF553B', '#00CC96', '#636EFA']} // 부정, 긍정, 중립 순서 대응 필요시 조정
+                    marker: { colors: ['#00CC96', '#EF553B', '#636EFA'] } // 긍정, 부정, 중립 순서
                 }];
+                document.getElementById('sentimentChart').innerHTML = "";
                 Plotly.newPlot('sentimentChart', pieData, {title: '<b>전체 감성 분포</b>'}, config);
 
-                // [키워드 차트 데이터 - 가로 바 차트]
+                // [키워드 차트]
                 const kCounts = {};
                 data.forEach(d => { if(d.keyword) kCounts[d.keyword] = (kCounts[d.keyword] || 0) + 1; });
                 const sortedK = Object.entries(kCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
@@ -104,26 +116,22 @@
                     type: 'bar', orientation: 'h',
                     marker: {color: '#636EFA'}
                 }];
+                document.getElementById('keywordChart').innerHTML = "";
                 Plotly.newPlot('keywordChart', barData, {
                     title: '<b>핵심 키워드 Top 10</b>',
                     yaxis: {autorange: 'reversed'},
-                    margin: {l: 100}
+                    margin: {l: 120}
                 }, config);
 
-                // [테이블 업데이트]
+                // [테이블]
                 const tbody = document.querySelector("#dataTable tbody");
+                tbody.innerHTML = "";
                 data.reverse().slice(0, 30).forEach(d => {
-                    let sColor = "#636EFA"; // 중립
+                    let sColor = "#636EFA"; 
                     if(d.sentiment === '긍정') sColor = "#00CC96";
                     if(d.sentiment === '부정') sColor = "#EF553B";
                     
-       return {
-        "title": item['snippet']['title'],
-        "view_count": int(stats.get('viewCount', 0)),
-        "like_count": int(stats.get('likeCount', 0)),
-        "comment_count": int(stats.get('commentCount', 0)),
-        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S') # 이제 KST로 찍힙니다
-    }             const row = `<tr>
+                    const row = `<tr>
                         <td class="col-sentiment" style="color:${sColor}">${d.sentiment}</td>
                         <td class="col-keyword text-truncate">${d.keyword || '-'}</td>
                         <td class="small text-muted">${d.text}</td>
