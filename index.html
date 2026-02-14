@@ -70,7 +70,7 @@
         <!-- 4. 상세 분석 테이블 -->
         <div class="card">
             <div class="card-header-custom d-flex justify-content-between align-items-center">
-                <h5 class="card-title">📝 최근 분석 데이터 (Top 30)</h5>
+                <h5 class="card-title">📝 전체 분석 데이터</h5>
                 <span class="badge bg-light text-dark">최신순 정렬</span>
             </div>
             <div class="card-body p-0">
@@ -124,7 +124,10 @@
         Papa.parse("analyzed_comments.csv", {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
-                const data = results.data.filter(d => d.sentiment && d.text);
+                // '광고' 키워드 제외 필터링 추가
+                const rawData = results.data.filter(d => d.sentiment && d.text);
+                const data = rawData.filter(d => d.keyword !== '광고');
+                
                 if (data.length === 0) return;
 
                 // [감성 차트 데이터 준비]
@@ -161,7 +164,7 @@
                 // [테이블 업데이트]
                 const tbody = document.querySelector("#dataTable tbody");
                 tbody.innerHTML = "";
-                [...data].reverse().slice(0, 30).forEach(d => {
+                [...data].reverse().forEach(d => {
                     const cls = d.sentiment === '긍정' ? 'pos' : (d.sentiment === '부정' ? 'neg' : 'neu');
                     const row = `<tr>
                         <td style="padding-left: 1.5rem;"><span class="sentiment-badge ${cls}">${d.sentiment}</span></td>
