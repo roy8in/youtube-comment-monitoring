@@ -28,19 +28,23 @@ jobs:
         run: python update_job.py
         
       - name: Commit and Push changes
+        # 여론 분석을 위해 여기서도 금고 열쇠(API 키)가 필요합니다!
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # 1. 봇이 작업하던 환경을 깨끗하게 정리 (충돌 방지)
+          # 1. 환경 정리
           git reset --hard
           
-          # 2. 서버의 최신 변경사항(매니저님의 코드 수정분 등)을 강제로 가져옴
+          # 2. 최신 코드 가져오기
           git pull --rebase origin main
           
-          # 3. 그 위에 다시 스크립트를 실행해서 최신 데이터를 생성 (재분석)
+          # 3. 키를 가진 상태로 다시 실행 (env 설정 덕분에 이제 성공합니다)
           python update_job.py
           
-          # 4. 변경된 CSV 파일만 스테이징하고 푸시
+          # 4. 결과 저장
           git add analyzed_comments.csv video_stats.csv
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update data" && git push)
