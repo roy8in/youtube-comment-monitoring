@@ -1,0 +1,36 @@
+name: Auto Update YouTube PR Data
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # 30분마다 실행
+  workflow_dispatch:        # GitHub에서 수동 버튼 클릭으로도 실행 가능
+
+jobs:
+  update-dashboard-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+        
+      - name: 파이썬 환경 설정
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: 필요 라이브러리 설치
+        run: |
+          pip install pandas google-api-python-client openai python-dotenv
+          
+      - name: 데이터 업데이트 스크립트 실행
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python update_job.py
+        
+      - name: 갱신된 CSV 파일을 GitHub에 자동 커밋 및 푸시
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add analyzed_comments.csv video_stats.csv
+          git commit -m "Auto-update dashboard data" || exit 0
+          git push
