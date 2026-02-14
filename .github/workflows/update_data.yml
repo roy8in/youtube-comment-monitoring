@@ -31,6 +31,16 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # 1. 봇이 작업하던 환경을 깨끗하게 정리 (충돌 방지)
+          git reset --hard
+          
+          # 2. 서버의 최신 변경사항(매니저님의 코드 수정분 등)을 강제로 가져옴
+          git pull --rebase origin main
+          
+          # 3. 그 위에 다시 스크립트를 실행해서 최신 데이터를 생성 (재분석)
+          python update_job.py
+          
+          # 4. 변경된 CSV 파일만 스테이징하고 푸시
           git add analyzed_comments.csv video_stats.csv
-          # 변경사항이 있을 때만 실행하며, 서버의 최신본을 가져와서 합친 후 푸시(rebase)
-          git diff --quiet && git diff --staged --quiet || (git pull --rebase && git commit -m "Auto-update data" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update data" && git push)
