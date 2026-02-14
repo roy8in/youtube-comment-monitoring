@@ -7,6 +7,7 @@ import os
 DATA_FILE = "analyzed_comments.csv"
 STATS_FILE = "video_stats.csv"
 
+@st.cache_data(ttl=600)  # 10분마다 캐시 갱신
 def load_data(file_path):
     """CSV 파일을 읽어옵니다. 없으면 빈 데이터프레임 반환"""
     if os.path.exists(file_path):
@@ -30,8 +31,10 @@ def main():
         c1, c2, c3, c4 = st.columns(4)
         latest = df_stats.iloc[-1]
         
-        # 이전 데이터와 비교하여 증가분 표시
-        delta_view = int(latest['view_count'] - df_stats.iloc[-2]['view_count']) if len(df_stats) > 1 else 0
+        # 이전 데이터와 비교하여 증가분 표시 (데이터가 2개 이상일 때만 계산)
+        delta_view = None
+        if len(df_stats) >= 2:
+            delta_view = int(latest['view_count'] - df_stats.iloc[-2]['view_count'])
         
         c1.metric("누적 조회수", f"{latest['view_count']:,}회", f"+{delta_view:,}" if delta_view else None)
         c2.metric("좋아요", f"{latest['like_count']:,}개")
@@ -43,10 +46,14 @@ def main():
         cutoff_time = pd.to_datetime("2026-02-14 08:00:00")
         df_filtered = df_stats[df_stats['timestamp'] >= cutoff_time]
         
-        fig_views = px.line(df_filtered, x='timestamp', y='view_count', title="시간대별 조회수 추이 (2/14 08:00 이후)",
+        # 데이터가 필터링 후 비어있으면 전체 데이터 사용
+        if df_filtered.empty:
+            df_filtered = df_stats
+
+        fig_views = px.line(df_filtered, x='timestamp', y='view_count', title="시간대별 조회수 추이",
                             markers=True, line_shape='spline', template="plotly_white")
         fig_views.update_traces(line_color='#FF4B4B')
-        st.plotly_chart(fig_views, width="stretch")
+        st.plotly_chart(fig_views, use_container_width=True)
     else:
         st.info("영상 통계 데이터가 아직 수집되지 않았습니다. (데이터 갱신 대기 중)")
 
@@ -61,7 +68,7 @@ def main():
             st.subheader("감성 분포")
             fig_pie = px.pie(df_comments, names='sentiment', color='sentiment',
                              color_discrete_map={'긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '오류': '#AB63FA'})
-            st.plotly_chart(fig_pie, width="stretch")
+            st.plotly_chart(fig_pie, use_container_width=True)
             
         with col_right:
             st.subheader("주요 키워드 여론")
@@ -71,7 +78,7 @@ def main():
             fig_ks = px.bar(ks_filtered, x='keyword', y='count', color='sentiment',
                             color_discrete_map={'긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA'},
                             barmode='stack')
-            st.plotly_chart(fig_ks, width="stretch")
+            st.plotly_chart(fig_ks, use_container_width=True)
 
         st.markdown("### 📝 전체 분석 데이터")
         
