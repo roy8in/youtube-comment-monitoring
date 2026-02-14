@@ -112,13 +112,16 @@
         const config = { responsive: true, displayModeBar: false };
         const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '오류': '#AB63FA' };
         
+        // 캐시 방지를 위한 타임스탬프 생성
+        const cacheBuster = new Date().getTime();
+        
         // 모바일 여부에 따라 차트 폰트 크기 결정 (기존보다 50% 증대)
         const isMobile = window.innerWidth < 768;
         const chartFontSize = isMobile ? 24 : 18;
         const chartFont = { family: 'Pretendard, sans-serif', size: chartFontSize };
 
         // 1. 영상 통계 로드
-        Papa.parse("video_stats.csv", {
+        Papa.parse("video_stats.csv?t=" + cacheBuster, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 const data = results.data.filter(d => d.timestamp && d.view_count);
@@ -145,7 +148,7 @@
         });
 
         // 2. 댓글 분석 데이터 로드
-        Papa.parse("analyzed_comments.csv", {
+        Papa.parse("analyzed_comments.csv?t=" + cacheBuster, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 // '광고' 키워드 제외 필터링 추가
