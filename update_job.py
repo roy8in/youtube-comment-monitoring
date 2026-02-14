@@ -31,7 +31,7 @@ def run_update():
     if os.path.exists(DATA_FILE):
         existing_df = pd.read_csv(DATA_FILE)
     else:
-        existing_df = pd.DataFrame(columns=['text', 'sentiment', 'keyword'])
+        existing_df = pd.DataFrame(columns=['text', 'sentiment', 'category', 'keyword'])
         
     existing_texts = set(existing_df['text'].tolist()) if not existing_df.empty else set()
     new_comments = [c for c in raw_comments if c not in existing_texts]
