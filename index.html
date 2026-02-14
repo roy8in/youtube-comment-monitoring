@@ -21,6 +21,19 @@
         .neg { background: #fff5f5; color: #ef553b; }
         .neu { background: #f0f5ff; color: #636efa; }
         .empty-msg { color: #adb5bd; display: flex; align-items: center; justify-content: center; height: 100%; font-style: italic; }
+        
+        /* 모바일 가독성 향상을 위한 미디어 쿼리 */
+        @media (max-width: 768px) {
+            body { font-size: 15px; }
+            .header-section { padding: 1.5rem 0; }
+            .header-section h2 { font-size: 1.5rem !important; }
+            .card-title { font-size: 1.1rem !important; }
+            .sentiment-badge { font-size: 0.95rem; padding: 6px 12px; }
+            .table { font-size: 1rem; }
+            .table-container { max-height: 500px; }
+            .small { font-size: 0.95rem !important; }
+            .fw-bold { font-size: 1.05rem; }
+        }
     </style>
 </head>
 <body>
