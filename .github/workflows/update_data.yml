@@ -25,6 +25,7 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TZ: Asia/Seoul
         run: python update_job.py
         
       - name: Commit and Push changes
