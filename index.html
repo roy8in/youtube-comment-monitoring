@@ -19,7 +19,7 @@
 <body>
     <div class="container-fluid shadow-sm p-3 mb-5 bg-white rounded">
         <h2 class="text-center fw-bold text-primary">📊 국민연금 유튜브 여론 실시간 모니터링</h2>
-        <p class="text-center text-muted">Tactical Asset Allocation Overlay & PR Context Analysis</p>
+        <p class="text-center text-muted">국민연금공단 홍보실 언론홍보부</p>
     </div>
 
     <div class="container">
@@ -117,7 +117,13 @@
                     if(d.sentiment === '긍정') sColor = "#00CC96";
                     if(d.sentiment === '부정') sColor = "#EF553B";
                     
-                    const row = `<tr>
+       return {
+        "title": item['snippet']['title'],
+        "view_count": int(stats.get('viewCount', 0)),
+        "like_count": int(stats.get('likeCount', 0)),
+        "comment_count": int(stats.get('commentCount', 0)),
+        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S') # 이제 KST로 찍힙니다
+    }             const row = `<tr>
                         <td class="col-sentiment" style="color:${sColor}">${d.sentiment}</td>
                         <td class="col-keyword text-truncate">${d.keyword || '-'}</td>
                         <td class="small text-muted">${d.text}</td>
