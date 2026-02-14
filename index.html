@@ -7,60 +7,94 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; padding: 20px; font-family: 'Pretendard', -apple-system, sans-serif; }
-        .card { margin-bottom: 25px; border: none; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
-        .table thead { background-color: #ebf0f5; }
-        .col-sentiment { white-space: nowrap; width: 100px; text-align: center; font-weight: bold; }
-        .col-keyword { width: 150px; font-weight: 500; }
-        .chart-container { min-height: 400px; display: flex; align-items: center; justify-content: center; }
-        .empty-msg { color: #adb5bd; font-style: italic; }
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { background-color: #f0f2f5; padding-bottom: 50px; font-family: 'Pretendard', sans-serif; }
+        .header-section { background: white; border-bottom: 1px solid #e1e4e8; padding: 2rem 0; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 24px; transition: transform 0.2s; }
+        .card-header-custom { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f0f0f0; background: transparent; }
+        .card-title { font-weight: 700; color: #1a1a1a; margin-bottom: 0; font-size: 1.1rem; }
+        .chart-container { height: 400px; width: 100%; }
+        .table-container { max-height: 600px; overflow-y: auto; }
+        .table thead { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
+        .sentiment-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
+        .pos { background: #e6fffa; color: #00cc96; }
+        .neg { background: #fff5f5; color: #ef553b; }
+        .neu { background: #f0f5ff; color: #636efa; }
+        .empty-msg { color: #adb5bd; display: flex; align-items: center; justify-content: center; height: 100%; font-style: italic; }
     </style>
 </head>
 <body>
-    <div class="container-fluid shadow-sm p-3 mb-5 bg-white rounded">
-        <h2 class="text-center fw-bold text-primary">📊 국민연금 유튜브 여론 실시간 모니터링</h2>
-        <p class="text-center text-muted">국민연금공단 홍보실 언론홍보부</p>
+    <div class="header-section text-center">
+        <div class="container">
+            <h2 class="fw-bold text-primary mb-1">📊 국민연금 유튜브 여론 모니터링</h2>
+            <p class="text-muted mb-0">국민연금공단 홍보실 실시간 분석 시스템</p>
+        </div>
     </div>
 
     <div class="container">
-        <div class="card p-4">
-            <div id="viewChart" class="chart-container"><span class="empty-msg">조회수 데이터를 불러오는 중...</span></div>
+        <!-- 1. 시간대별 조회수 (전체 너비) -->
+        <div class="card">
+            <div class="card-header-custom">
+                <h5 class="card-title">📈 시간대별 누적 조회수 추이</h5>
+            </div>
+            <div class="card-body">
+                <div id="viewChart" class="chart-container"><div class="empty-msg">데이터를 불러오는 중...</div></div>
+            </div>
         </div>
 
         <div class="row">
-            <div class="col-lg-6">
-                <div class="card p-4">
-                    <div id="sentimentChart" class="chart-container"><span class="empty-msg">감성 분석 데이터 대기 중...</span></div>
+            <!-- 2. 감성 분석 (좌측) -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header-custom">
+                        <h5 class="card-title">😊 전체 감성 분포</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="sentimentChart" class="chart-container"></div>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card p-4">
-                    <div id="keywordChart" class="chart-container"><span class="empty-msg">키워드 데이터 대기 중...</span></div>
+            <!-- 3. 핵심 키워드 (우측) -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header-custom">
+                        <h5 class="card-title">🔍 핵심 키워드 Top 10</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="keywordChart" class="chart-container"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card p-4">
-            <h4 class="fw-bold mb-3">📝 최근 분석 데이터 (Top 30)</h4>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle" id="dataTable">
-                    <thead>
-                        <tr>
-                            <th class="col-sentiment">감성</th>
-                            <th class="col-keyword">키워드</th>
-                            <th>내용</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+        <!-- 4. 상세 분석 테이블 -->
+        <div class="card">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <h5 class="card-title">📝 최근 분석 데이터 (Top 30)</h5>
+                <span class="badge bg-light text-dark">최신순 정렬</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table table-hover align-middle mb-0" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px; padding-left: 1.5rem;">감성</th>
+                                <th style="width: 150px;">키워드</th>
+                                <th>댓글 내용</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const config = { responsive: true };
+        const config = { responsive: true, displayModeBar: false };
+        const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '오류': '#AB63FA' };
 
-        // 1. 영상 통계 처리
+        // 1. 영상 통계 로드
         Papa.parse("video_stats.csv", {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
@@ -70,71 +104,69 @@
                 const trace = {
                     x: data.map(d => d.timestamp),
                     y: data.map(d => d.view_count),
-                    type: 'scatter', mode: 'lines+markers', name: '조회수',
-                    line: {color: '#007bff', width: 3},
-                    marker: {size: 8}
+                    type: 'scatter', mode: 'lines+markers',
+                    line: {color: '#4e73df', width: 3, shape: 'spline'},
+                    marker: {size: 6},
+                    fill: 'tozeroy', fillcolor: 'rgba(78, 115, 223, 0.05)'
                 };
-                const layout = { 
-                    title: '<b>시간대별 누적 조회수 추이 (KST)</b>',
-                    margin: {t:50, b:50, l:60, r:20},
-                    xaxis: { title: '시간' },
-                    yaxis: { title: '조회수' }
+                const layout = {
+                    margin: {t:20, b:40, l:60, r:20},
+                    xaxis: { gridcolor: '#f0f0f0' },
+                    yaxis: { gridcolor: '#f0f0f0' },
+                    autosize: true
                 };
                 document.getElementById('viewChart').innerHTML = "";
                 Plotly.newPlot('viewChart', [trace], layout, config);
             }
         });
 
-        // 2. 감성 및 키워드 분석 처리
+        // 2. 댓글 분석 데이터 로드
         Papa.parse("analyzed_comments.csv", {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 const data = results.data.filter(d => d.sentiment && d.text);
                 if (data.length === 0) return;
 
-                // [감성 차트]
-                const sCounts = {};
-                data.forEach(d => sCounts[d.sentiment] = (sCounts[d.sentiment] || 0) + 1);
+                // [감성 차트 데이터 준비]
+                const sCounts = { '긍정': 0, '부정': 0, '중립': 0 };
+                data.forEach(d => { if(sCounts[d.sentiment] !== undefined) sCounts[d.sentiment]++; });
+                
                 const pieData = [{
                     values: Object.values(sCounts),
                     labels: Object.keys(sCounts),
                     type: 'pie',
-                    hole: 0.4,
-                    marker: { colors: ['#00CC96', '#EF553B', '#636EFA'] } // 긍정, 부정, 중립 순서
+                    hole: 0.5,
+                    marker: { colors: Object.keys(sCounts).map(k => colorMap[k]) },
+                    textinfo: 'label+percent',
+                    hoverinfo: 'label+value'
                 }];
-                document.getElementById('sentimentChart').innerHTML = "";
-                Plotly.newPlot('sentimentChart', pieData, {title: '<b>전체 감성 분포</b>'}, config);
+                Plotly.newPlot('sentimentChart', pieData, { margin: {t:20, b:20, l:20, r:20} }, config);
 
-                // [키워드 차트]
+                // [키워드 차트 데이터 준비]
                 const kCounts = {};
                 data.forEach(d => { if(d.keyword) kCounts[d.keyword] = (kCounts[d.keyword] || 0) + 1; });
-                const sortedK = Object.entries(kCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                const sortedK = Object.entries(kCounts).sort((a,b) => b[1] - a[1]).slice(0, 10).reverse();
                 
                 const barData = [{
                     x: sortedK.map(d => d[1]),
                     y: sortedK.map(d => d[0]),
                     type: 'bar', orientation: 'h',
-                    marker: {color: '#636EFA'}
+                    marker: { color: '#4e73df', opacity: 0.8 }
                 }];
-                document.getElementById('keywordChart').innerHTML = "";
                 Plotly.newPlot('keywordChart', barData, {
-                    title: '<b>핵심 키워드 Top 10</b>',
-                    yaxis: {autorange: 'reversed'},
-                    margin: {l: 120}
+                    margin: {t:10, b:40, l:120, r:20},
+                    xaxis: { title: '빈도수', gridcolor: '#f0f0f0' }
                 }, config);
 
-                // [테이블]
+                // [테이블 업데이트]
                 const tbody = document.querySelector("#dataTable tbody");
                 tbody.innerHTML = "";
-                data.reverse().slice(0, 30).forEach(d => {
-                    let sColor = "#636EFA"; 
-                    if(d.sentiment === '긍정') sColor = "#00CC96";
-                    if(d.sentiment === '부정') sColor = "#EF553B";
-                    
+                [...data].reverse().slice(0, 30).forEach(d => {
+                    const cls = d.sentiment === '긍정' ? 'pos' : (d.sentiment === '부정' ? 'neg' : 'neu');
                     const row = `<tr>
-                        <td class="col-sentiment" style="color:${sColor}">${d.sentiment}</td>
-                        <td class="col-keyword text-truncate">${d.keyword || '-'}</td>
-                        <td class="small text-muted">${d.text}</td>
+                        <td style="padding-left: 1.5rem;"><span class="sentiment-badge ${cls}">${d.sentiment}</span></td>
+                        <td class="fw-bold">${d.keyword || '-'}</td>
+                        <td class="text-muted small">${d.text}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 });
