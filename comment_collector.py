@@ -77,10 +77,14 @@ def fetch_video_stats(video_url: str) -> dict:
         
     item = response['items'][0]
     stats = item['statistics']
+
+    kst_now = datetime.utcnow() + timedelta(hours=9)
+    
     return {
         "title": item['snippet']['title'],
         "view_count": int(stats.get('viewCount', 0)),
         "like_count": int(stats.get('likeCount', 0)),
         "comment_count": int(stats.get('commentCount', 0)),
-        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        "timestamp": kst_now.strftime('%Y-%m-%d %H:%M:%S')
+    }
     }
