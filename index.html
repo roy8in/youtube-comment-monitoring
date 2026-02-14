@@ -43,7 +43,7 @@
             <p class="text-muted mb-3">국민연금공단 소통홍보실 실시간 분석 시스템</p>
             <div class="video-info p-3 border rounded-3 bg-light d-inline-block shadow-sm">
                 <span class="d-block text-muted small mb-1">분석 대상 영상:</span>
-                <a href="https://youtu.be/fNHLffyXnQM" target="_blank" class="text-decoration-none fw-bold text-dark h4 mb-0 d-block">
+                <a href="https://youtu.be/fNHLffyXnQM" target="_blank" class="text-decoration-none fw-bold text-dark d-block" style="font-size: 1rem; max-width: 600px;">
                     🎥 최대 큰손 국민연금, 본격 코스닥 투자 임박? | 김성주 국민연금공단 이사장 [더 피플]
                 </a>
             </div>
@@ -90,7 +90,7 @@
         <div class="card">
             <div class="card-header-custom d-flex justify-content-between align-items-center">
                 <h5 class="card-title">📝 전체 분석 데이터</h5>
-                <span class="badge bg-light text-dark">최신순</span>
+                <span class="badge bg-light text-dark">최신순 정렬</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-container">
@@ -113,9 +113,9 @@
         const config = { responsive: true, displayModeBar: false };
         const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '오류': '#AB63FA' };
         
-        // 모바일 여부에 따라 차트 폰트 크기 결정
+        // 모바일 여부에 따라 차트 폰트 크기 결정 (기존보다 50% 증대)
         const isMobile = window.innerWidth < 768;
-        const chartFontSize = isMobile ? 16 : 12;
+        const chartFontSize = isMobile ? 24 : 18;
         const chartFont = { family: 'Pretendard, sans-serif', size: chartFontSize };
 
         // 1. 영상 통계 로드
