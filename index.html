@@ -48,11 +48,47 @@
     <div class="header-section text-center">
         <div class="container">
             <h2 class="fw-bold text-primary mb-1">📊 국민연금 유튜브 여론 모니터링</h2>
-            <div class="video-info p-3 border rounded-3 bg-light d-inline-block shadow-sm">
+            <div class="video-info p-3 border rounded-3 bg-light d-inline-block shadow-sm mb-4">
                 <span class="d-block text-muted small mb-1">분석 대상 영상:</span>
                 <a href="https://youtu.be/fNHLffyXnQM" target="_blank" class="text-decoration-none fw-bold text-dark d-block">
                     🎥 최대 큰손 국민연금, 본격 코스닥 투자 임박? | 김성주 국민연금공단 이사장 [더 피플]
                 </a>
+            </div>
+
+            <!-- 요약 통계 카드 추가 -->
+            <div class="row justify-content-center g-3 mb-2">
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 shadow-sm border-0 bg-white">
+                        <div class="card-body p-3">
+                            <div class="text-muted small mb-1">총 조회수</div>
+                            <div class="h4 fw-bold text-primary mb-0" id="totalViews">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 shadow-sm border-0 bg-white">
+                        <div class="card-body p-3">
+                            <div class="text-muted small mb-1">좋아요</div>
+                            <div class="h4 fw-bold text-danger mb-0" id="totalLikes">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 shadow-sm border-0 bg-white">
+                        <div class="card-body p-3">
+                            <div class="text-muted small mb-1">댓글 수</div>
+                            <div class="h4 fw-bold text-success mb-0" id="totalComments">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 shadow-sm border-0 bg-white">
+                        <div class="card-body p-3">
+                            <div class="text-muted small mb-1">최종 업데이트</div>
+                            <div class="small fw-bold text-secondary mb-0" id="lastUpdate">-</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -124,6 +160,13 @@
             complete: function(results) {
                 const data = results.data.filter(d => d.timestamp && d.view_count);
                 if (data.length === 0) return;
+
+                // 최신 데이터로 상단 요약 카드 업데이트
+                const latest = data[data.length - 1];
+                document.getElementById('totalViews').innerText = Number(latest.view_count).toLocaleString();
+                document.getElementById('totalLikes').innerText = Number(latest.like_count).toLocaleString();
+                document.getElementById('totalComments').innerText = Number(latest.comment_count).toLocaleString();
+                document.getElementById('lastUpdate').innerText = latest.timestamp;
                 
                 const trace = {
                     x: data.map(d => d.timestamp),
