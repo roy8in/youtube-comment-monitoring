@@ -38,6 +38,10 @@
             .table { font-size: 1.1rem; }
             .small { font-size: 1.05rem !important; }
         }
+        .footer { background: white; border-top: 1px solid #e1e4e8; padding: 2rem 0; margin-top: 3rem; color: #6c757d; font-size: 0.85rem; }
+        .disclaimer-list { list-style: none; padding-left: 0; margin-bottom: 0; display: inline-block; text-align: left; }
+        .disclaimer-list li { margin-bottom: 4px; }
+        .disclaimer-list li::before { content: "•"; margin-right: 8px; color: #adb5bd; }
     </style>
 </head>
 <body>
@@ -96,6 +100,17 @@
             </div>
         </div>
     </div>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="fw-bold mb-2 text-dark">⚠️ 면책조항 (Disclaimer)</p>
+            <ul class="disclaimer-list">
+                <li>본 대시보드의 데이터는 유튜브 API를 통해 자동 수집되었으며, 실제 서비스상의 수치와 차이가 있을 수 있습니다.</li>
+                <li>댓글 분석 결과는 AI(GPT-4o-mini)에 의해 생성된 것으로, 실제 작성자의 의도나 공단의 공식 입장과는 다를 수 있습니다.</li>
+                <li>제공되는 모든 정보는 참고용이며, 이를 근거로 한 판단에 대한 책임은 사용자에게 있습니다.</li>
+            </ul>
+        </div>
+    </footer>
 
     <script>
         const config = { responsive: true, displayModeBar: false };
