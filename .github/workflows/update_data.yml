@@ -29,7 +29,6 @@ jobs:
         run: python update_job.py
         
       - name: Commit and Push changes
-        # 여론 분석을 위해 여기서도 금고 열쇠(API 키)가 필요합니다!
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -44,7 +43,7 @@ jobs:
           # 2. 최신 코드 가져오기
           git pull --rebase origin main
           
-          # 3. 키를 가진 상태로 다시 실행 (env 설정 덕분에 이제 성공합니다)
+          # 3. 키를 가진 상태로 다시 실행
           python update_job.py
           
           # 4. 결과 저장
