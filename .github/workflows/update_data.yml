@@ -47,5 +47,5 @@ jobs:
           python update_job.py
           
           # 4. 결과 저장
-          git add analyzed_comments_*.csv video_stats_*.csv dashboard_config.json
+          git add analyzed_comments_*.csv video_stats_*.csv dashboard_config.json prompt_*.txt
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update data" && git push)

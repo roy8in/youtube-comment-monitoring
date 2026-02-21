@@ -12,6 +12,7 @@ TARGET_DATE = config["target_date"]
 VIDEO_URL = config["video_url"]
 DATA_FILE = f"analyzed_comments_{TARGET_DATE}.csv"
 STATS_FILE = f"video_stats_{TARGET_DATE}.csv"
+PROMPT_FILE = f"prompt_{TARGET_DATE}.txt"
 
 def run_update():
     """영상 통계 및 댓글 데이터를 업데이트하고 CSV에 저장합니다."""
@@ -53,7 +54,10 @@ def run_update():
             seen_in_batch.add(norm_c)
     
     if new_comments:
-        analyzed_list = analyze_comments_with_llm(new_comments)
+        with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+            prompt_template = f.read()
+        
+        analyzed_list = analyze_comments_with_llm(new_comments, prompt_template)
         if analyzed_list:
             # LLM이 반환한 text가 변형되었을 수 있으므로, 원본 new_comments와 순서대로 매칭하여 저장
             # (analyze_comments_with_llm이 입력 리스트와 동일한 순서/개수를 반환한다고 가정)
