@@ -21,14 +21,7 @@ jobs:
         run: |
           pip install pandas google-api-python-client openai python-dotenv
           
-      - name: 데이터 업데이트 스크립트 실행
-        env:
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          TZ: Asia/Seoul
-        run: python update_job.py
-        
-      - name: Commit and Push changes
+      - name: 데이터 업데이트 및 결과 저장
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -37,15 +30,12 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # 1. 환경 정리
-          git reset --hard
-          
-          # 2. 최신 코드 가져오기
+          # 1. 최신 코드 가져오기
           git pull --rebase origin main
           
-          # 3. 키를 가진 상태로 다시 실행
+          # 2. 데이터 업데이트 스크립트 실행
           python update_job.py
           
-          # 4. 결과 저장
+          # 3. 결과 저장
           git add analyzed_comments_*.csv video_stats_*.csv dashboard_config.json prompt_*.txt
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update data" && git push)
