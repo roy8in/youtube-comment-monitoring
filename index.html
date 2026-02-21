@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <title>NPS 여론 모니터링</title>
@@ -8,50 +9,172 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        body { background-color: #f0f2f5; padding-bottom: 50px; font-family: 'Pretendard', sans-serif; }
-        .header-section { background: white; border-bottom: 1px solid #e1e4e8; padding: 2rem 0; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 24px; }
-        .card-header-custom { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f0f0f0; background: transparent; }
-        .card-title { font-weight: 700; color: #1a1a1a; margin-bottom: 0; font-size: 1.1rem; }
-        
-        /* 차트 컨테이너 충돌 해결: display: flex 제거 및 position 지정 */
-        .chart-container { height: 400px; width: 100%; position: relative; }
-        .empty-msg { color: #adb5bd; font-style: italic; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        
-        .table-container { max-height: 600px; overflow-y: auto; }
-        .table thead { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
-        
-        /* 정렬 기능 스타일 */
-        th.sortable { cursor: pointer; user-select: none; transition: background-color 0.2s; }
-        th.sortable:hover { background-color: #e2e6ea; }
-        .sort-icon { font-size: 0.8rem; color: #adb5bd; margin-left: 5px; }
 
-        .sentiment-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: inline-block; width: 60px; text-align: center; }
-        .pos { background: #e6fffa; color: #00cc96; }
-        .neg { background: #fff5f5; color: #ef553b; }
-        .neu { background: #f0f5ff; color: #636efa; }
-        
-        @media (max-width: 768px) {
-            body { font-size: 18px; }
-            .header-section h2 { font-size: 1.8rem !important; }
-            .sentiment-badge { font-size: 1.1rem; padding: 8px 16px; width: 70px; }
-            .table { font-size: 1.1rem; }
-            .small { font-size: 1.05rem !important; }
+        body {
+            background-color: #f0f2f5;
+            padding-bottom: 50px;
+            font-family: 'Pretendard', sans-serif;
         }
-        .footer { background: white; border-top: 1px solid #e1e4e8; padding: 2rem 0; margin-top: 3rem; color: #6c757d; font-size: 0.85rem; }
-        .disclaimer-list { list-style: none; padding-left: 0; margin-bottom: 0; display: inline-block; text-align: left; }
-        .disclaimer-list li { margin-bottom: 4px; }
-        .disclaimer-list li::before { content: "•"; margin-right: 8px; color: #adb5bd; }
+
+        .header-section {
+            background: white;
+            border-bottom: 1px solid #e1e4e8;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .card-header-custom {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            background: transparent;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0;
+            font-size: 1.1rem;
+        }
+
+        /* 차트 컨테이너 충돌 해결: display: flex 제거 및 position 지정 */
+        .chart-container {
+            height: 400px;
+            width: 100%;
+            position: relative;
+        }
+
+        .empty-msg {
+            color: #adb5bd;
+            font-style: italic;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .table thead {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 1;
+        }
+
+        /* 정렬 기능 스타일 */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        th.sortable:hover {
+            background-color: #e2e6ea;
+        }
+
+        .sort-icon {
+            font-size: 0.8rem;
+            color: #adb5bd;
+            margin-left: 5px;
+        }
+
+        .sentiment-badge {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            width: 60px;
+            text-align: center;
+        }
+
+        .pos {
+            background: #e6fffa;
+            color: #00cc96;
+        }
+
+        .neg {
+            background: #fff5f5;
+            color: #ef553b;
+        }
+
+        .neu {
+            background: #f0f5ff;
+            color: #636efa;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 18px;
+            }
+
+            .header-section h2 {
+                font-size: 1.8rem !important;
+            }
+
+            .sentiment-badge {
+                font-size: 1.1rem;
+                padding: 8px 16px;
+                width: 70px;
+            }
+
+            .table {
+                font-size: 1.1rem;
+            }
+
+            .small {
+                font-size: 1.05rem !important;
+            }
+        }
+
+        .footer {
+            background: white;
+            border-top: 1px solid #e1e4e8;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .disclaimer-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+            display: inline-block;
+            text-align: left;
+        }
+
+        .disclaimer-list li {
+            margin-bottom: 4px;
+        }
+
+        .disclaimer-list li::before {
+            content: "•";
+            margin-right: 8px;
+            color: #adb5bd;
+        }
     </style>
 </head>
+
 <body>
     <div class="header-section text-center">
         <div class="container">
             <h2 class="fw-bold text-primary mb-1">📊 국민연금 유튜브 여론 모니터링</h2>
             <div class="video-info p-3 border rounded-3 bg-light d-inline-block shadow-sm mb-4">
                 <span class="d-block text-muted small mb-1">분석 대상 영상:</span>
-                <a href="https://youtu.be/fNHLffyXnQM" target="_blank" class="text-decoration-none fw-bold text-dark d-block">
-                    🎥 최대 큰손 국민연금, 본격 코스닥 투자 임박? | 김성주 국민연금공단 이사장 [더 피플]
+                <a id="videoLink" href="#" target="_blank" class="text-decoration-none fw-bold text-dark d-block">
+                    🎥 로딩 중...
                 </a>
             </div>
 
@@ -95,21 +218,39 @@
 
     <div class="container">
         <div class="card">
-            <div class="card-header-custom"><h5 class="card-title">📈 시간대별 누적 조회수 추이</h5></div>
-            <div class="card-body"><div id="viewChart" class="chart-container"><div class="empty-msg">데이터 로드 중...</div></div></div>
+            <div class="card-header-custom">
+                <h5 class="card-title">📈 시간대별 누적 조회수 추이</h5>
+            </div>
+            <div class="card-body">
+                <div id="viewChart" class="chart-container">
+                    <div class="empty-msg">데이터 로드 중...</div>
+                </div>
+            </div>
         </div>
 
         <div class="row">
             <div class="col-lg-5">
                 <div class="card">
-                    <div class="card-header-custom"><h5 class="card-title">😊 전체 감성 분포</h5></div>
-                    <div class="card-body"><div id="sentimentChart" class="chart-container"><div class="empty-msg">데이터 로드 중...</div></div></div>
+                    <div class="card-header-custom">
+                        <h5 class="card-title">😊 전체 감성 분포</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="sentimentChart" class="chart-container">
+                            <div class="empty-msg">데이터 로드 중...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-7">
                 <div class="card">
-                    <div class="card-header-custom"><h5 class="card-title">📊 분류별 여론 (긍정/부정/중립)</h5></div>
-                    <div class="card-body"><div id="categoryChart" class="chart-container"><div class="empty-msg">데이터 로드 중...</div></div></div>
+                    <div class="card-header-custom">
+                        <h5 class="card-title">📊 분류별 여론 (긍정/부정/중립)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="categoryChart" class="chart-container">
+                            <div class="empty-msg">데이터 로드 중...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,9 +265,12 @@
                     <table class="table table-hover align-middle mb-0" id="dataTable">
                         <thead>
                             <tr>
-                                <th class="sortable" data-index="0" style="width: 120px; padding-left: 1.5rem;">감성 <span class="sort-icon">↕</span></th>
-                                <th class="sortable" data-index="1" style="width: 140px;">분류 <span class="sort-icon">↕</span></th>
-                                <th class="sortable" data-index="2" style="width: 150px;">키워드 <span class="sort-icon">↕</span></th>
+                                <th class="sortable" data-index="0" style="width: 120px; padding-left: 1.5rem;">감성 <span
+                                        class="sort-icon">↕</span></th>
+                                <th class="sortable" data-index="1" style="width: 140px;">분류 <span
+                                        class="sort-icon">↕</span></th>
+                                <th class="sortable" data-index="2" style="width: 150px;">키워드 <span
+                                        class="sort-icon">↕</span></th>
                                 <th>댓글 내용</th>
                             </tr>
                         </thead>
@@ -149,136 +293,155 @@
     </footer>
 
     <script>
-        const config = { responsive: true, displayModeBar: false };
+        const configOptions = { responsive: true, displayModeBar: false };
         const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA' };
         const isMobile = window.innerWidth < 768;
         const chartFontSize = isMobile ? 18 : 13;
 
-        // 1. 조회수 데이터 로드
-        Papa.parse("video_stats.csv?v=" + new Date().getTime(), {
-            download: true, header: true, skipEmptyLines: true,
-            complete: function(results) {
-                const data = results.data.filter(d => d.timestamp && d.view_count);
-                if (data.length === 0) return;
+        // 설정 파일 불러오기
+        fetch('dashboard_config.json')
+            .then(response => response.json())
+            .then(config => {
+                // 영상 정보 업데이트
+                const videoLinkBtn = document.getElementById('videoLink');
+                videoLinkBtn.href = config.video_url;
+                videoLinkBtn.innerText = `🎥 ${config.video_title}`;
 
-                // 최신 데이터로 상단 요약 카드 업데이트
-                const latest = data[data.length - 1];
-                document.getElementById('totalViews').innerText = Number(latest.view_count).toLocaleString();
-                document.getElementById('totalLikes').innerText = Number(latest.like_count).toLocaleString();
-                document.getElementById('totalComments').innerText = Number(latest.comment_count).toLocaleString();
-                document.getElementById('lastUpdate').innerText = latest.timestamp;
-                
-                const trace = {
-                    x: data.map(d => d.timestamp),
-                    y: data.map(d => d.view_count),
-                    type: 'scatter', mode: 'lines+markers',
-                    line: {color: '#4e73df', width: 3, shape: 'spline'},
-                    fill: 'tozeroy', fillcolor: 'rgba(78, 115, 223, 0.05)'
-                };
-                document.getElementById('viewChart').innerHTML = ""; // 로딩 메시지 제거
-                Plotly.newPlot('viewChart', [trace], {
-                    margin: {t:20, b:40, l:60, r:20},
-                    autosize: true,
-                    xaxis: { tickfont: {size: chartFontSize} },
-                    yaxis: { tickfont: {size: chartFontSize} }
-                }, config);
-            }
-        });
+                const targetDate = config.target_date;
+                const statsFile = `video_stats_${targetDate}.csv`;
+                const dataFile = `analyzed_comments_${targetDate}.csv`;
 
-        // 2. 분석 데이터 로드 (차트 및 테이블)
-        Papa.parse("analyzed_comments.csv?v=" + new Date().getTime(), {
-            download: true, header: true, skipEmptyLines: true,
-            complete: function(results) {
-                const rawData = results.data.filter(d => d.sentiment && d.text);
-                const data = rawData.filter(d => d.keyword !== '광고' && d.sentiment !== '광고');
-                if (data.length === 0) return;
+                // 1. 조회수 데이터 로드
+                Papa.parse(statsFile + "?v=" + new Date().getTime(), {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: function (results) {
+                        const data = results.data.filter(d => d.timestamp && d.view_count);
+                        if (data.length === 0) return;
 
-                // --- [감성 파이 차트] ---
-                const sCounts = { '긍정': 0, '부정': 0, '중립': 0 };
-                data.forEach(d => { if(sCounts[d.sentiment] !== undefined) sCounts[d.sentiment]++; });
-                
-                document.getElementById('sentimentChart').innerHTML = ""; // 로딩 제거
-                Plotly.newPlot('sentimentChart', [{
-                    values: Object.values(sCounts), labels: Object.keys(sCounts), type: 'pie', hole: 0.5,
-                    marker: { colors: Object.keys(sCounts).map(k => colorMap[k]) },
-                    textfont: { size: chartFontSize + 2 }
-                }], { 
-                    margin: {t:20, b:20, l:20, r:20},
-                    autosize: true
-                }, config);
+                        // 최신 데이터로 상단 요약 카드 업데이트
+                        const latest = data[data.length - 1];
+                        document.getElementById('totalViews').innerText = Number(latest.view_count).toLocaleString();
+                        document.getElementById('totalLikes').innerText = Number(latest.like_count).toLocaleString();
+                        document.getElementById('totalComments').innerText = Number(latest.comment_count).toLocaleString();
+                        document.getElementById('lastUpdate').innerText = latest.timestamp;
 
-                // --- [분류별 스택 바 차트] ---
-                const catCounts = {};
-                data.forEach(d => {
-                    const cat = d.category || '기타';
-                    if (!catCounts[cat]) catCounts[cat] = { '긍정': 0, '부정': 0, '중립': 0 };
-                    if (catCounts[cat][d.sentiment] !== undefined) catCounts[cat][d.sentiment]++;
+                        const trace = {
+                            x: data.map(d => d.timestamp),
+                            y: data.map(d => d.view_count),
+                            type: 'scatter', mode: 'lines+markers',
+                            line: { color: '#4e73df', width: 3, shape: 'spline' },
+                            fill: 'tozeroy', fillcolor: 'rgba(78, 115, 223, 0.05)'
+                        };
+                        document.getElementById('viewChart').innerHTML = ""; // 로딩 메시지 제거
+                        Plotly.newPlot('viewChart', [trace], {
+                            margin: { t: 20, b: 40, l: 60, r: 20 },
+                            autosize: true,
+                            xaxis: { tickfont: { size: chartFontSize } },
+                            yaxis: { tickfont: { size: chartFontSize } }
+                        }, configOptions);
+                    }
                 });
 
-                // 총 빈도수 오름차순 정렬 (가로 막대 차트에서는 큰 값이 위에 오도록)
-                const sortedCats = Object.keys(catCounts).sort((a, b) => {
-                    const sumA = catCounts[a]['긍정'] + catCounts[a]['부정'] + catCounts[a]['중립'];
-                    const sumB = catCounts[b]['긍정'] + catCounts[b]['부정'] + catCounts[b]['중립'];
-                    return sumA - sumB; 
-                });
+                // 2. 분석 데이터 로드 (차트 및 테이블)
+                Papa.parse(dataFile + "?v=" + new Date().getTime(), {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: function (results) {
+                        const rawData = results.data.filter(d => d.sentiment && d.text);
+                        const data = rawData.filter(d => d.keyword !== '광고' && d.sentiment !== '광고');
+                        if (data.length === 0) return;
 
-                const tracePos = { x: sortedCats.map(c => catCounts[c]['긍정']), y: sortedCats, name: '긍정', type: 'bar', orientation: 'h', marker: {color: colorMap['긍정']} };
-                const traceNeg = { x: sortedCats.map(c => catCounts[c]['부정']), y: sortedCats, name: '부정', type: 'bar', orientation: 'h', marker: {color: colorMap['부정']} };
-                const traceNeu = { x: sortedCats.map(c => catCounts[c]['중립']), y: sortedCats, name: '중립', type: 'bar', orientation: 'h', marker: {color: colorMap['중립']} };
+                        // --- [감성 파이 차트] ---
+                        const sCounts = { '긍정': 0, '부정': 0, '중립': 0 };
+                        data.forEach(d => { if (sCounts[d.sentiment] !== undefined) sCounts[d.sentiment]++; });
 
-                document.getElementById('categoryChart').innerHTML = ""; // 로딩 제거
-                Plotly.newPlot('categoryChart', [tracePos, traceNeg, traceNeu], {
-                    barmode: 'stack',
-                    margin: {t:20, b:60, l:90, r:20}, // 범례와 겹치지 않도록 bottom/left margin 확보
-                    autosize: true,
-                    xaxis: { tickfont: {size: chartFontSize} },
-                    yaxis: { tickfont: {size: chartFontSize} },
-                    legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' } // 범례를 차트 하단 중앙으로 배치
-                }, config);
+                        document.getElementById('sentimentChart').innerHTML = ""; // 로딩 제거
+                        Plotly.newPlot('sentimentChart', [{
+                            values: Object.values(sCounts), labels: Object.keys(sCounts), type: 'pie', hole: 0.5,
+                            marker: { colors: Object.keys(sCounts).map(k => colorMap[k]) },
+                            textfont: { size: chartFontSize + 2 }
+                        }], {
+                            margin: { t: 20, b: 20, l: 20, r: 20 },
+                            autosize: true
+                        }, configOptions);
 
-                // --- [테이블 업데이트] ---
-                const tbody = document.querySelector("#dataTable tbody");
-                [...data].reverse().forEach(d => {
-                    const cls = d.sentiment === '긍정' ? 'pos' : (d.sentiment === '부정' ? 'neg' : 'neu');
-                    tbody.innerHTML += `<tr>
-                        <td style="padding-left: 1.5rem;"><span class="sentiment-badge ${cls}">${d.sentiment}</span></td>
-                        <td><span class="badge bg-secondary">${d.category || '기타'}</span></td>
-                        <td class="fw-bold text-truncate" style="max-width: 150px;">${d.keyword || '-'}</td>
-                        <td class="text-dark small">${d.text}</td>
-                    </tr>`;
-                });
-
-                // --- [테이블 컬럼 정렬 (Sorting)] ---
-                document.querySelectorAll('th.sortable').forEach(th => {
-                    th.addEventListener('click', () => {
-                        const table = th.closest('table');
-                        const tableBody = table.querySelector('tbody');
-                        const rows = Array.from(tableBody.querySelectorAll('tr'));
-                        const index = parseInt(th.getAttribute('data-index'));
-                        const isAsc = th.classList.contains('asc');
-
-                        rows.sort((a, b) => {
-                            const valA = a.children[index].innerText.trim();
-                            const valB = b.children[index].innerText.trim();
-                            return isAsc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                        // --- [분류별 스택 바 차트] ---
+                        const catCounts = {};
+                        data.forEach(d => {
+                            const cat = d.category || '기타';
+                            if (!catCounts[cat]) catCounts[cat] = { '긍정': 0, '부정': 0, '중립': 0 };
+                            if (catCounts[cat][d.sentiment] !== undefined) catCounts[cat][d.sentiment]++;
                         });
 
-                        // 방향 아이콘 토글
-                        table.querySelectorAll('th.sortable').forEach(header => {
-                            header.classList.remove('asc', 'desc');
-                            header.querySelector('.sort-icon').innerText = '↕';
+                        // 총 빈도수 오름차순 정렬 (가로 막대 차트에서는 큰 값이 위에 오도록)
+                        const sortedCats = Object.keys(catCounts).sort((a, b) => {
+                            const sumA = catCounts[a]['긍정'] + catCounts[a]['부정'] + catCounts[a]['중립'];
+                            const sumB = catCounts[b]['긍정'] + catCounts[b]['부정'] + catCounts[b]['중립'];
+                            return sumA - sumB;
                         });
-                        th.classList.toggle('asc', !isAsc);
-                        th.classList.toggle('desc', isAsc);
-                        th.querySelector('.sort-icon').innerText = isAsc ? '↑' : '↓';
 
-                        // 재배치
-                        tableBody.innerHTML = '';
-                        rows.forEach(row => tableBody.appendChild(row));
-                    });
+                        const tracePos = { x: sortedCats.map(c => catCounts[c]['긍정']), y: sortedCats, name: '긍정', type: 'bar', orientation: 'h', marker: { color: colorMap['긍정'] } };
+                        const traceNeg = { x: sortedCats.map(c => catCounts[c]['부정']), y: sortedCats, name: '부정', type: 'bar', orientation: 'h', marker: { color: colorMap['부정'] } };
+                        const traceNeu = { x: sortedCats.map(c => catCounts[c]['중립']), y: sortedCats, name: '중립', type: 'bar', orientation: 'h', marker: { color: colorMap['중립'] } };
+
+                        document.getElementById('categoryChart').innerHTML = ""; // 로딩 제거
+                        Plotly.newPlot('categoryChart', [tracePos, traceNeg, traceNeu], {
+                            barmode: 'stack',
+                            margin: { t: 20, b: 60, l: 90, r: 20 }, // 범례와 겹치지 않도록 bottom/left margin 확보
+                            autosize: true,
+                            xaxis: { tickfont: { size: chartFontSize } },
+                            yaxis: { tickfont: { size: chartFontSize } },
+                            legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' } // 범례를 차트 하단 중앙으로 배치
+                        }, configOptions);
+
+                        // --- [테이블 업데이트] ---
+                        const tbody = document.querySelector("#dataTable tbody");
+                        [...data].reverse().forEach(d => {
+                            const cls = d.sentiment === '긍정' ? 'pos' : (d.sentiment === '부정' ? 'neg' : 'neu');
+                            tbody.innerHTML += `<tr>
+                                <td style="padding-left: 1.5rem;"><span class="sentiment-badge ${cls}">${d.sentiment}</span></td>
+                                <td><span class="badge bg-secondary">${d.category || '기타'}</span></td>
+                                <td class="fw-bold text-truncate" style="max-width: 150px;">${d.keyword || '-'}</td>
+                                <td class="text-dark small">${d.text}</td>
+                            </tr>`;
+                        });
+
+                        // --- [테이블 컬럼 정렬 (Sorting)] ---
+                        document.querySelectorAll('th.sortable').forEach(th => {
+                            th.addEventListener('click', () => {
+                                const table = th.closest('table');
+                                const tableBody = table.querySelector('tbody');
+                                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                                const index = parseInt(th.getAttribute('data-index'));
+                                const isAsc = th.classList.contains('asc');
+
+                                rows.sort((a, b) => {
+                                    const valA = a.children[index].innerText.trim();
+                                    const valB = b.children[index].innerText.trim();
+                                    return isAsc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                                });
+
+                                // 방향 아이콘 토글
+                                table.querySelectorAll('th.sortable').forEach(header => {
+                                    header.classList.remove('asc', 'desc');
+                                    header.querySelector('.sort-icon').innerText = '↕';
+                                });
+                                th.classList.toggle('asc', !isAsc);
+                                th.classList.toggle('desc', isAsc);
+                                th.querySelector('.sort-icon').innerText = isAsc ? '↑' : '↓';
+
+                                // 재배치
+                                tableBody.innerHTML = '';
+                                rows.forEach(row => tableBody.appendChild(row));
+                            });
+                        });
+                    }
                 });
-            }
-        });
+            })
+            .catch(error => {
+                console.error('Error loading dashboard configuration:', error);
+                document.getElementById('videoLink').innerText = "❌ 설정 파일을 불러오는 데 실패했습니다.";
+            });
     </script>
 </body>
+
 </html>

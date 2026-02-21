@@ -1,12 +1,17 @@
 import os
+import json
 import pandas as pd
 from comment_collector import fetch_youtube_comments, fetch_video_stats
 from comment_analyzer import analyze_comments_with_llm
 
-DATA_FILE = "analyzed_comments.csv"
-STATS_FILE = "video_stats.csv"
-VIDEO_URL = "https://youtu.be/fNHLffyXnQM?si=MqWixiMHqKLpMsiG"
+CONFIG_FILE = "dashboard_config.json"
+with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+    config = json.load(f)
 
+TARGET_DATE = config["target_date"]
+VIDEO_URL = config["video_url"]
+DATA_FILE = f"analyzed_comments_{TARGET_DATE}.csv"
+STATS_FILE = f"video_stats_{TARGET_DATE}.csv"
 
 def run_update():
     """영상 통계 및 댓글 데이터를 업데이트하고 CSV에 저장합니다."""
