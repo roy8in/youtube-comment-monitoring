@@ -38,6 +38,7 @@ def run_update():
         existing_df = pd.read_csv(DATA_FILE)
     else:
         existing_df = pd.DataFrame(columns=['text', 'sentiment', 'category', 'keyword'])
+        existing_df.to_csv(DATA_FILE, index=False)
         
     def normalize(t):
         return "".join(t.split()) if isinstance(t, str) else ""
