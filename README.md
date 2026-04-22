@@ -26,6 +26,32 @@
 3.  **AI 분석**: OpenAI GPT-4o-mini 모델을 사용하여 문맥을 파악하고 감성/주제를 분류합니다.
 4.  **자동 업데이트**: GitHub Actions를 통해 정해진 주기마다 자동으로 데이터를 갱신합니다.
 
+## 🔁 다른 유튜브 영상으로 바꾸는 방법
+
+이 프로젝트는 `dashboard_config.json`을 기준으로 수집 대상을 결정합니다.
+
+1. `dashboard_config.json`의 `video_url`을 새 영상 URL로 변경합니다.
+   - `https://youtu.be/fNHLffyXnQM?si=RpMYiECR4H0xm9Es` 같은 `youtu.be` 링크도 그대로 사용할 수 있습니다.
+   - 내부 코드가 `video_id`를 자동으로 추출하므로, `watch?v=...` 형식으로 바꿔도 동작합니다.
+2. `dashboard_config.json`의 `video_title`도 새 영상 제목으로 함께 바꿉니다.
+3. `target_date`를 새 값으로 바꿉니다.
+   - 이 값은 저장 파일 이름에 사용됩니다.
+   - 예: `analyzed_comments_<target_date>.csv`, `video_stats_<target_date>.csv`, `prompt_<target_date>.txt`
+4. 같은 이름의 `prompt_<target_date>.txt` 파일이 있는지 확인합니다.
+   - `update_job.py`가 이 파일을 읽어서 댓글 분석 프롬프트로 사용합니다.
+
+예시:
+
+```json
+{
+  "target_date": "20260422",
+  "video_url": "https://youtu.be/fNHLffyXnQM?si=RpMYiECR4H0xm9Es",
+  "video_title": "새 영상 제목"
+}
+```
+
+참고로 댓글 수집/통계 수집 로직은 `comment_collector.py`에서 유튜브 URL을 받아 `video_id`를 추출한 뒤 API를 호출합니다. 그래서 URL 자체는 `youtu.be` 형식 그대로 넣어도 됩니다.
+
 ## ⚠️ 면책조항 (Disclaimer)
 
 *   **AI 분석의 한계**: 본 대시보드에 표시되는 감성 및 주제 분류 결과는 LLM(Large Language Model)에 의한 자동 분석 결과입니다. AI의 특성상 문맥 오판이나 반어법 인식 오류가 발생할 수 있으므로, 실제 작성자의 의도와 다를 수 있습니다.
