@@ -8,6 +8,20 @@ from openai import OpenAI
 load_dotenv()
 
 
+def _build_prompt(prompt_template: str, comments: list) -> str:
+    strict_rules = """
+
+[중요 제약]
+- 입력 배열의 각 원소는 댓글 1개입니다.
+- 출력 data 배열의 길이는 입력 댓글 수와 반드시 정확히 같아야 합니다.
+- 입력 댓글 1개를 여러 행으로 쪼개지 마세요.
+- 여러 댓글을 합치지 마세요.
+- 출력 순서는 입력 순서와 반드시 같아야 합니다.
+- text 값은 입력 댓글 원문과 동일한 댓글 1개를 그대로 유지하세요.
+"""
+    return f"{prompt_template}{strict_rules}\n\n댓글 목록: {json.dumps(comments, ensure_ascii=False)}"
+
+
 def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
     """OpenRouter를 사용하여 댓글의 감성과 주요 키워드를 분석합니다."""
     if not comments:
@@ -31,23 +45,24 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
         }
     )
 
-    model = "openai/gpt-4o-mini"
+    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+    batch_size = int(os.getenv("OPENROUTER_BATCH_SIZE", "10"))
+    request_timeout = float(os.getenv("OPENROUTER_TIMEOUT", "60"))
     analyzed_data = []
 
-    batch_size = 15
     for i in range(0, len(comments), batch_size):
         batch = comments[i:i + batch_size]
+        print(f"배치 {i // batch_size + 1}/{(len(comments) + batch_size - 1) // batch_size} 분석 중...")
         
-        # 최상위를 {} 객체로 감싸도록 프롬프트 수정
-        # 타겟(국민연금, 이사장) 중심의 감성 분석으로 프롬프트 고도화
-        prompt = f"{prompt_template}\n\n댓글 목록: {json.dumps(batch, ensure_ascii=False)}"
+        prompt = _build_prompt(prompt_template, batch)
 
         try:
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
-                response_format={"type": "json_object"}  # JSON 구조 완벽 강제
+                response_format={"type": "json_object"},  # JSON 구조 완벽 강제
+                timeout=request_timeout,
             )
             
             content = response.choices[0].message.content.strip()
@@ -55,6 +70,10 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
             
             # 딕셔너리 안의 리스트를 추출
             if "data" in result_dict:
+                if len(result_dict["data"]) != len(batch):
+                    raise ValueError(
+                        f"반환 개수 불일치: expected={len(batch)}, actual={len(result_dict['data'])}"
+                    )
                 analyzed_data.extend(result_dict["data"])
             else:
                 raise ValueError("JSON에 'data' 키가 없습니다.")
@@ -66,12 +85,30 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
             print(f"배치 {i//batch_size} 분석 중 오류 발생: {e}")
             if 'content' in locals():
                 print(f"Raw response: {content[:200]}")
-            
+
+            # 배치 응답이 어긋나면 댓글 단위로 재시도해 순서를 강제합니다.
             for text in batch:
-                analyzed_data.append({
-                    "text": text,
-                    "sentiment": "오류",
-                    "keyword": f"에러: {error_type}"  # 화면에 '에러: NotFoundError' 등으로 표시됨
-                })
+                single_prompt = _build_prompt(prompt_template, [text])
+                try:
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=[{"role": "user", "content": single_prompt}],
+                        temperature=0.1,
+                        response_format={"type": "json_object"},
+                        timeout=request_timeout,
+                    )
+                    content = response.choices[0].message.content.strip()
+                    result_dict = json.loads(content)
+                    if "data" not in result_dict or len(result_dict["data"]) != 1:
+                        raise ValueError("단건 재시도 결과 형식 오류")
+                    analyzed_data.extend(result_dict["data"])
+                except Exception as single_error:
+                    single_error_type = type(single_error).__name__
+                    analyzed_data.append({
+                        "text": text,
+                        "sentiment": "오류",
+                        "category": "기타",
+                        "keyword": f"에러: {single_error_type}"
+                    })
 
     return analyzed_data

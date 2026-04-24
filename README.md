@@ -23,7 +23,7 @@
 
 1.  **데이터 수집**: 유튜브 API를 통해 최신 댓글과 영상 통계를 가져옵니다.
 2.  **중복 제거**: 이미 분석된 댓글은 건너뛰고 새로운 댓글만 추출합니다.
-3.  **AI 분석**: OpenAI GPT-4o-mini 모델을 사용하여 문맥을 파악하고 감성/주제를 분류합니다.
+3.  **AI 분석**: OpenRouter의 `openai/gpt-4o-mini` 모델을 사용하여 문맥을 파악하고 감성/주제를 분류합니다.
 4.  **자동 업데이트**: GitHub Actions를 통해 정해진 주기마다 자동으로 데이터를 갱신합니다.
 
 ## 🔁 다른 유튜브 영상으로 바꾸는 방법
@@ -51,6 +51,11 @@
 ```
 
 참고로 댓글 수집/통계 수집 로직은 `comment_collector.py`에서 유튜브 URL을 받아 `video_id`를 추출한 뒤 API를 호출합니다. 그래서 URL 자체는 `youtu.be` 형식 그대로 넣어도 됩니다.
+
+GitHub Actions에서도 자동 분석이 돌아가려면 저장소 `Secrets and variables > Actions`에 아래 시크릿이 있어야 합니다.
+
+- `YOUTUBE_API_KEY`
+- `OPENROUTER_API_KEY`
 
 ## ⚠️ 면책조항 (Disclaimer)
 
