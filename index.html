@@ -392,6 +392,13 @@
             return value ? String(value) : '-';
         }
 
+        function prepareChartContainer(containerId) {
+            const element = document.getElementById(containerId);
+            if (!element) return null;
+            element.innerHTML = '';
+            return element;
+        }
+
         function createMetricCard(label, value, footnote = '') {
             return `
                 <div class="metric-card">
@@ -706,6 +713,8 @@
         function renderOverviewCharts() {
             const bundles = Array.from(appState.bundles.values());
             const labels = bundles.map(bundle => bundle.report.tab_label || bundle.report.start_date);
+            prepareChartContainer('overviewSentimentChart');
+            prepareChartContainer('overviewCategoryChart');
 
             const sentimentTraces = sentimentOrder.map(sentiment => ({
                 x: labels,
@@ -864,6 +873,10 @@
         }
 
         function renderDetailCharts(bundle) {
+            prepareChartContainer('detailViewChart');
+            prepareChartContainer('detailSentimentChart');
+            prepareChartContainer('detailCategoryChart');
+
             Plotly.newPlot('detailViewChart', [{
                 x: bundle.stats.map(row => row.timestamp),
                 y: bundle.stats.map(row => row.view_count),
