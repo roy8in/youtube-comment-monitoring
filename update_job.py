@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from comment_collector import fetch_youtube_comments, fetch_video_stats
-from comment_analyzer import analyze_comments_with_llm
+from comment_analyzer import analyze_comments_with_llm, normalize_sentiment_label
 from config_loader import (
     get_collectable_reports,
     load_dashboard_config,
@@ -93,6 +93,7 @@ def run_update_for_report(report, config):
                     # 결과 딕셔너리에서 text만 원본으로 교체
                     item = result.copy()
                     item["text"] = new_comments[i]
+                    item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
                     final_data.append(item)
 
             new_df = pd.DataFrame(final_data)

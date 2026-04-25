@@ -8,6 +8,21 @@ from openai import OpenAI
 load_dotenv()
 
 
+def normalize_sentiment_label(sentiment: str | None) -> str:
+    value = (sentiment or "").strip()
+    if value == "광고":
+        return "광고"
+    if value == "긍정":
+        return "긍정"
+    if value == "부정":
+        return "부정"
+    if value == "중립":
+        return "중립"
+    if value == "기타":
+        return "중립"
+    return "중립"
+
+
 def _build_prompt(prompt_template: str, comments: list) -> str:
     strict_rules = """
 
@@ -74,7 +89,12 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
                     raise ValueError(
                         f"반환 개수 불일치: expected={len(batch)}, actual={len(result_dict['data'])}"
                     )
-                analyzed_data.extend(result_dict["data"])
+                normalized_batch = []
+                for item in result_dict["data"]:
+                    normalized_item = item.copy()
+                    normalized_item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
+                    normalized_batch.append(normalized_item)
+                analyzed_data.extend(normalized_batch)
             else:
                 raise ValueError("JSON에 'data' 키가 없습니다.")
                 
@@ -101,7 +121,12 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
                     result_dict = json.loads(content)
                     if "data" not in result_dict or len(result_dict["data"]) != 1:
                         raise ValueError("단건 재시도 결과 형식 오류")
-                    analyzed_data.extend(result_dict["data"])
+                    normalized_batch = []
+                    for item in result_dict["data"]:
+                        normalized_item = item.copy()
+                        normalized_item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
+                        normalized_batch.append(normalized_item)
+                    analyzed_data.extend(normalized_batch)
                 except Exception as single_error:
                     single_error_type = type(single_error).__name__
                     analyzed_data.append({

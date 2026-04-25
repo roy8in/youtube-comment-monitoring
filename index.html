@@ -233,38 +233,18 @@
 
         .table-wrap {
             max-height: 620px;
-            overflow-y: auto;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
             border-top: 1px solid rgba(221, 228, 238, 0.8);
         }
 
-        .mobile-comment-list {
-            display: none;
+        .detail-data-table {
+            min-width: 860px;
         }
 
-        .mobile-comment-card {
-            border-top: 1px solid rgba(221, 228, 238, 0.8);
-            padding: 16px 18px;
-        }
-
-        .mobile-comment-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .mobile-comment-keyword {
-            color: var(--muted);
-            font-size: 0.88rem;
-            font-weight: 700;
-        }
-
-        .mobile-comment-text {
-            font-size: 0.96rem;
-            line-height: 1.55;
-            color: var(--text);
-            word-break: break-word;
+        .detail-data-table td:last-child,
+        .detail-data-table th:last-child {
+            min-width: 420px;
         }
 
         .table thead {
@@ -448,11 +428,31 @@
             }
 
             .table-wrap {
-                display: none;
+                display: block;
+                max-height: 520px;
             }
 
-            .mobile-comment-list {
-                display: block;
+            .detail-data-table {
+                min-width: 780px;
+            }
+
+            .detail-data-table td,
+            .detail-data-table th {
+                font-size: 0.88rem;
+                white-space: nowrap;
+            }
+
+            .detail-data-table td:last-child,
+            .detail-data-table th:last-child {
+                min-width: 360px;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .sentiment-badge {
+                min-width: 54px;
+                font-size: 0.78rem;
+                padding: 4px 8px;
             }
         }
     </style>
@@ -487,8 +487,8 @@
 
     <script>
         const configOptions = { responsive: true, displayModeBar: false };
-        const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '기타': '#A855F7' };
-        const sentimentOrder = ['긍정', '부정', '중립', '기타'];
+        const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA' };
+        const sentimentOrder = ['긍정', '부정', '중립'];
         const isMobile = window.innerWidth < 768;
         const chartFontSize = isMobile ? 11 : 12;
         const appState = { config: null, reports: [], bundles: new Map(), activeTab: 'overview' };
@@ -505,14 +505,13 @@
         function getSentimentClass(sentiment) {
             if (sentiment === '긍정') return 'sentiment-positive';
             if (sentiment === '부정') return 'sentiment-negative';
-            if (sentiment === '중립') return 'sentiment-neutral';
-            return 'sentiment-other';
+            return 'sentiment-neutral';
         }
 
         function normalizeSentiment(sentiment) {
             if (sentimentOrder.includes(sentiment)) return sentiment;
             if (sentiment === '광고') return null;
-            return '기타';
+            return '중립';
         }
 
         function safeText(value) {
@@ -580,7 +579,7 @@
 
         function buildCommentData(commentRows) {
             const data = [];
-            const sentimentCounts = { '긍정': 0, '부정': 0, '중립': 0, '기타': 0 };
+            const sentimentCounts = { '긍정': 0, '부정': 0, '중립': 0 };
             const categoryCounts = {};
 
             commentRows.forEach(row => {
@@ -601,7 +600,7 @@
                 data.push(item);
                 sentimentCounts[sentiment] += 1;
                 if (!categoryCounts[category]) {
-                    categoryCounts[category] = { '긍정': 0, '부정': 0, '중립': 0, '기타': 0 };
+                    categoryCounts[category] = { '긍정': 0, '부정': 0, '중립': 0 };
                 }
                 categoryCounts[category][sentiment] += 1;
             });
@@ -965,7 +964,7 @@
                         <div class="card-panel">
                             <div class="panel-header">
                                 <h3 class="panel-title">분류별 여론</h3>
-                                <p class="panel-subtitle">분류별로 긍정, 부정, 중립, 기타 댓글 수를 누적 막대로 표시합니다.</p>
+                                <p class="panel-subtitle">분류별로 긍정, 부정, 중립 댓글 수를 누적 막대로 표시합니다.</p>
                             </div>
                             <div class="panel-body">
                                 <div id="detailCategoryChart" class="chart-container short"><div class="empty-msg">차트 로딩 중...</div></div>
@@ -978,24 +977,12 @@
                     <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h3 class="panel-title">전체 분석 데이터</h3>
-                            <p class="panel-subtitle">데스크톱에서는 표 정렬, 모바일에서는 카드형 목록으로 편하게 볼 수 있습니다.</p>
+                            <p class="panel-subtitle">모바일에서도 가로 스크롤과 정렬 기능을 그대로 사용할 수 있습니다.</p>
                         </div>
                         <div class="badge-soft">총 ${formatNumber(bundle.totalComments)}건</div>
                     </div>
-                    <div class="mobile-comment-list">
-                        ${bundle.comments.slice().reverse().map(row => `
-                            <div class="mobile-comment-card">
-                                <div class="mobile-comment-meta">
-                                    <span class="sentiment-badge ${getSentimentClass(row.sentiment)}">${row.sentiment}</span>
-                                    <span class="badge text-bg-secondary">${safeText(row.category)}</span>
-                                    <span class="mobile-comment-keyword">${safeText(row.keyword)}</span>
-                                </div>
-                                <div class="mobile-comment-text">${safeText(row.text)}</div>
-                            </div>
-                        `).join('')}
-                    </div>
                     <div class="table-wrap">
-                        <table class="table table-hover align-middle mb-0" id="detailDataTable">
+                        <table class="table table-hover align-middle mb-0 detail-data-table" id="detailDataTable">
                             <thead>
                                 <tr>
                                     <th class="sortable" data-index="0" style="width: 110px; padding-left: 1.25rem;">감성 <span class="sort-icon">↕</span></th>

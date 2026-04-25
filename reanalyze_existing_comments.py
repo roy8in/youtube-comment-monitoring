@@ -2,7 +2,7 @@ import argparse
 import csv
 from collections import Counter
 
-from comment_analyzer import analyze_comments_with_llm
+from comment_analyzer import analyze_comments_with_llm, normalize_sentiment_label
 from config_loader import (
     data_file_for_report,
     get_default_report,
@@ -43,7 +43,7 @@ def main() -> None:
         final_rows.append(
             {
                 "text": comment,
-                "sentiment": analyzed.get("sentiment", "오류"),
+                "sentiment": normalize_sentiment_label(analyzed.get("sentiment", "오류")),
                 "category": analyzed.get("category", "기타"),
                 "keyword": analyzed.get("keyword", "누락"),
             }
