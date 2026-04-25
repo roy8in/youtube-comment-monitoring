@@ -233,18 +233,38 @@
 
         .table-wrap {
             max-height: 620px;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             border-top: 1px solid rgba(221, 228, 238, 0.8);
         }
 
         .detail-data-table {
-            min-width: 860px;
+            width: 100%;
+            table-layout: fixed;
         }
 
-        .detail-data-table td:last-child,
-        .detail-data-table th:last-child {
-            min-width: 420px;
+        .detail-data-table td,
+        .detail-data-table th {
+            vertical-align: top;
+        }
+
+        .detail-data-table .col-sentiment {
+            width: 108px;
+        }
+
+        .detail-data-table .col-category {
+            width: 118px;
+        }
+
+        .detail-data-table .col-keyword {
+            width: 118px;
+        }
+
+        .detail-data-table .comment-cell {
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.45;
         }
 
         .table thead {
@@ -433,26 +453,46 @@
             }
 
             .detail-data-table {
-                min-width: 780px;
+                width: 100%;
+                table-layout: fixed;
             }
 
             .detail-data-table td,
             .detail-data-table th {
-                font-size: 0.88rem;
-                white-space: nowrap;
+                font-size: 0.84rem;
+                padding: 10px 8px;
             }
 
-            .detail-data-table td:last-child,
-            .detail-data-table th:last-child {
-                min-width: 360px;
-                white-space: normal;
-                word-break: break-word;
+            .detail-data-table .col-sentiment {
+                width: 70px;
+            }
+
+            .detail-data-table .col-category {
+                width: 78px;
+            }
+
+            .detail-data-table .col-keyword {
+                width: 78px;
+            }
+
+            .detail-data-table .comment-cell {
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                line-height: 1.4;
+                max-height: calc(1.4em * 3);
             }
 
             .sentiment-badge {
-                min-width: 54px;
-                font-size: 0.78rem;
-                padding: 4px 8px;
+                min-width: 46px;
+                font-size: 0.72rem;
+                padding: 4px 6px;
+            }
+
+            .detail-data-table .badge {
+                font-size: 0.72rem;
+                white-space: normal;
             }
         }
     </style>
@@ -985,19 +1025,19 @@
                         <table class="table table-hover align-middle mb-0 detail-data-table" id="detailDataTable">
                             <thead>
                                 <tr>
-                                    <th class="sortable" data-index="0" style="width: 110px; padding-left: 1.25rem;">감성 <span class="sort-icon">↕</span></th>
-                                    <th class="sortable" data-index="1" style="width: 150px;">분류 <span class="sort-icon">↕</span></th>
-                                    <th class="sortable" data-index="2" style="width: 140px;">키워드 <span class="sort-icon">↕</span></th>
+                                    <th class="sortable col-sentiment" data-index="0" style="padding-left: 1.25rem;">감성 <span class="sort-icon">↕</span></th>
+                                    <th class="sortable col-category" data-index="1">분류 <span class="sort-icon">↕</span></th>
+                                    <th class="sortable col-keyword" data-index="2">키워드 <span class="sort-icon">↕</span></th>
                                     <th>댓글 내용</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${bundle.comments.slice().reverse().map(row => `
                                     <tr>
-                                        <td style="padding-left: 1.25rem;"><span class="sentiment-badge ${getSentimentClass(row.sentiment)}">${row.sentiment}</span></td>
+                                        <td class="col-sentiment" style="padding-left: 1.25rem;"><span class="sentiment-badge ${getSentimentClass(row.sentiment)}">${row.sentiment}</span></td>
                                         <td><span class="badge text-bg-secondary">${safeText(row.category)}</span></td>
                                         <td class="fw-bold">${safeText(row.keyword)}</td>
-                                        <td class="small">${safeText(row.text)}</td>
+                                        <td class="small comment-cell">${safeText(row.text)}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
