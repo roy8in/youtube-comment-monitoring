@@ -237,6 +237,36 @@
             border-top: 1px solid rgba(221, 228, 238, 0.8);
         }
 
+        .mobile-comment-list {
+            display: none;
+        }
+
+        .mobile-comment-card {
+            border-top: 1px solid rgba(221, 228, 238, 0.8);
+            padding: 16px 18px;
+        }
+
+        .mobile-comment-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .mobile-comment-keyword {
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .mobile-comment-text {
+            font-size: 0.96rem;
+            line-height: 1.55;
+            color: var(--text);
+            word-break: break-word;
+        }
+
         .table thead {
             position: sticky;
             top: 0;
@@ -306,26 +336,123 @@
 
         @media (max-width: 768px) {
             .page-shell {
-                padding: 0 14px;
+                padding: 0 12px;
             }
 
             .hero-panel {
-                padding: 22px;
-                border-radius: 22px;
+                padding: 18px;
+                border-radius: 18px;
+            }
+
+            .hero-title {
+                font-size: 1.45rem;
+                margin-bottom: 6px;
+            }
+
+            .hero-subtitle {
+                font-size: 0.92rem;
+                line-height: 1.5;
+            }
+
+            .nav-wrap {
+                margin: 16px 0 18px;
+                gap: 8px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 4px;
+                scrollbar-width: none;
+            }
+
+            .nav-wrap::-webkit-scrollbar {
+                display: none;
+            }
+
+            .dashboard-tab {
+                flex: 0 0 auto;
+                padding: 9px 14px;
+                font-size: 0.92rem;
+                white-space: nowrap;
+            }
+
+            .card-panel {
+                border-radius: 18px;
+                margin-bottom: 16px;
             }
 
             .panel-header,
             .panel-body {
-                padding-left: 18px;
-                padding-right: 18px;
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .panel-header {
+                padding-top: 16px;
+            }
+
+            .panel-title {
+                font-size: 1rem;
+            }
+
+            .panel-subtitle {
+                font-size: 0.86rem;
+                line-height: 1.45;
+            }
+
+            .metric-card {
+                border-radius: 16px;
+                padding: 14px;
+            }
+
+            .metric-label {
+                font-size: 0.82rem;
+            }
+
+            .metric-value {
+                font-size: 1.28rem;
+            }
+
+            .metric-footnote {
+                font-size: 0.78rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .video-summary-card {
+                border-radius: 18px;
+                padding: 14px;
             }
 
             .chart-container {
-                height: 340px;
+                height: 250px;
             }
 
             .chart-container.short {
-                height: 300px;
+                height: 220px;
+            }
+
+            .detail-title {
+                font-size: 1.15rem;
+                line-height: 1.45;
+            }
+
+            .meta-line {
+                font-size: 0.88rem;
+            }
+
+            .badge-soft {
+                font-size: 0.77rem;
+                padding: 5px 9px;
+            }
+
+            .table-wrap {
+                display: none;
+            }
+
+            .mobile-comment-list {
+                display: block;
             }
         }
     </style>
@@ -363,7 +490,7 @@
         const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA', '기타': '#A855F7' };
         const sentimentOrder = ['긍정', '부정', '중립', '기타'];
         const isMobile = window.innerWidth < 768;
-        const chartFontSize = isMobile ? 15 : 12;
+        const chartFontSize = isMobile ? 11 : 12;
         const appState = { config: null, reports: [], bundles: new Map(), activeTab: 'overview' };
 
         function formatNumber(value) {
@@ -851,9 +978,21 @@
                     <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h3 class="panel-title">전체 분석 데이터</h3>
-                            <p class="panel-subtitle">헤더를 클릭하면 감성, 분류, 키워드 기준으로 정렬할 수 있습니다.</p>
+                            <p class="panel-subtitle">데스크톱에서는 표 정렬, 모바일에서는 카드형 목록으로 편하게 볼 수 있습니다.</p>
                         </div>
                         <div class="badge-soft">총 ${formatNumber(bundle.totalComments)}건</div>
+                    </div>
+                    <div class="mobile-comment-list">
+                        ${bundle.comments.slice().reverse().map(row => `
+                            <div class="mobile-comment-card">
+                                <div class="mobile-comment-meta">
+                                    <span class="sentiment-badge ${getSentimentClass(row.sentiment)}">${row.sentiment}</span>
+                                    <span class="badge text-bg-secondary">${safeText(row.category)}</span>
+                                    <span class="mobile-comment-keyword">${safeText(row.keyword)}</span>
+                                </div>
+                                <div class="mobile-comment-text">${safeText(row.text)}</div>
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="table-wrap">
                         <table class="table table-hover align-middle mb-0" id="detailDataTable">
