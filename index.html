@@ -510,6 +510,18 @@
             };
         }
 
+        function getLatestReportId(reports) {
+            if (!reports.length) return 'overview';
+
+            const sortedReports = [...reports].sort((reportA, reportB) => {
+                const valueA = reportA.video_start_at || reportA.start_date || '';
+                const valueB = reportB.video_start_at || reportB.start_date || '';
+                return valueB.localeCompare(valueA);
+            });
+
+            return sortedReports[0]?.id || 'overview';
+        }
+
         async function loadDashboard() {
             try {
                 const configResponse = await fetch(`dashboard_config.json?v=${Date.now()}`);
@@ -536,7 +548,7 @@
                 renderTabs();
                 renderOverview();
 
-                activateTab('overview');
+                activateTab(getLatestReportId(reports));
             } catch (error) {
                 console.error(error);
                 document.getElementById('overviewSection').innerHTML = `
@@ -552,7 +564,7 @@
 
         function renderTabs() {
             const html = [
-                `<button class="dashboard-tab" data-tab-id="overview">대표 페이지</button>`,
+                `<button class="dashboard-tab" data-tab-id="overview">종합</button>`,
                 ...appState.reports.map(report => `<button class="dashboard-tab" data-tab-id="${report.id}">${report.tab_label || report.start_date}</button>`)
             ].join('');
 
