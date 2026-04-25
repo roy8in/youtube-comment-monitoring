@@ -1571,12 +1571,17 @@
                 legend: { orientation: 'h', y: -0.12, x: 0.5, xanchor: 'center', traceorder: 'normal' }
             }, configOptions);
 
-            const categories = sortCategories(
-                Object.keys(bundle.categoryCounts).filter(category => {
+            const categories = Object.keys(bundle.categoryCounts)
+                .filter(category => {
                     const total = Object.values(bundle.categoryCounts[category] || {}).reduce((acc, value) => acc + value, 0);
                     return total > 0;
                 })
-            );
+                .sort((a, b) => {
+                    const totalA = Object.values(bundle.categoryCounts[a] || {}).reduce((acc, value) => acc + value, 0);
+                    const totalB = Object.values(bundle.categoryCounts[b] || {}).reduce((acc, value) => acc + value, 0);
+                    if (totalB !== totalA) return totalB - totalA;
+                    return sortCategories([a, b])[0] === a ? -1 : 1;
+                });
 
             const traces = sentimentOrder.map(sentiment => ({
                 x: categories.map(category => (bundle.categoryCounts[category] || {})[sentiment] || 0),
@@ -1591,7 +1596,7 @@
                 barmode: 'stack',
                 margin: { t: 20, b: 70, l: 110, r: 12 },
                 xaxis: { tickfont: { size: chartFontSize } },
-                yaxis: { tickfont: { size: chartFontSize } },
+                yaxis: { tickfont: { size: chartFontSize }, autorange: 'reversed' },
                 legend: { orientation: 'h', y: -0.22, x: 0.5, xanchor: 'center', traceorder: 'normal' }
             }, configOptions);
         }
