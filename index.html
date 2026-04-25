@@ -476,12 +476,9 @@
             }
 
             .detail-data-table .comment-cell {
-                display: -webkit-box;
-                -webkit-line-clamp: 3;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
                 line-height: 1.4;
-                max-height: calc(1.4em * 3);
+                white-space: normal;
+                word-break: break-word;
             }
 
             .sentiment-badge {
@@ -1077,7 +1074,8 @@
                 labels: sentimentLabels.length ? sentimentLabels : ['데이터 없음'],
                 type: 'pie',
                 hole: 0.5,
-                marker: { colors: sentimentLabels.map(label => colorMap[label]) }
+                marker: { colors: sentimentLabels.map(label => colorMap[label]) },
+                sort: false
             }], {
                 margin: { t: 20, b: 20, l: 20, r: 20 },
                 showlegend: true,
