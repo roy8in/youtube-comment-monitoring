@@ -20,9 +20,9 @@
             --primary-soft: #eaf2ff;
             --text: #1f2937;
             --muted: #6b7280;
-            --positive: #00cc96;
-            --negative: #ef553b;
-            --neutral: #636efa;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --neutral: #94a3b8;
             --other: #a855f7;
         }
 
@@ -41,14 +41,14 @@
         }
 
         .hero {
-            padding: 36px 0 24px;
+            padding: 20px 0 12px;
         }
 
         .hero-panel {
             background: linear-gradient(135deg, #103f87, #1f67d2);
             color: white;
             border-radius: 28px;
-            padding: 28px;
+            padding: 20px 24px;
             box-shadow: 0 22px 45px rgba(16, 63, 135, 0.18);
         }
 
@@ -197,6 +197,10 @@
             height: 320px;
         }
 
+        .chart-container.category-overview-chart {
+            height: 560px;
+        }
+
         .empty-msg {
             position: absolute;
             inset: 0;
@@ -340,7 +344,7 @@
             }
 
             .hero-panel {
-                padding: 18px;
+                padding: 14px 16px;
                 border-radius: 18px;
             }
 
@@ -431,6 +435,10 @@
 
             .chart-container.short {
                 height: 220px;
+            }
+
+            .chart-container.category-overview-chart {
+                height: 760px;
             }
 
             .detail-title {
@@ -524,8 +532,27 @@
 
     <script>
         const configOptions = { responsive: true, displayModeBar: false };
-        const colorMap = { '긍정': '#00CC96', '부정': '#EF553B', '중립': '#636EFA' };
+        const colorMap = { '긍정': '#16A34A', '부정': '#DC2626', '중립': '#94A3B8' };
         const sentimentOrder = ['긍정', '부정', '중립'];
+        const categoryOrder = ['국민연금 조직', '운용성과', '투자전략', '연금제도', '퇴직연금', '세대형평', '정부개입·거버넌스', '지역발전', '기타'];
+        const categoryAliasMap = {
+            '국민연금 조직': '국민연금 조직',
+            '운용성과': '운용성과',
+            '기금수익': '운용성과',
+            '투자전략': '투자전략',
+            '국내주식': '투자전략',
+            '해외투자': '투자전략',
+            '주택투자': '투자전략',
+            '연금제도': '연금제도',
+            '퇴직연금': '퇴직연금',
+            '세대형평': '세대형평',
+            '정부개입': '정부개입·거버넌스',
+            '주주권행사': '정부개입·거버넌스',
+            '정부개입·거버넌스': '정부개입·거버넌스',
+            '지역발전': '지역발전',
+            '전북금융생태계': '지역발전',
+            '기타': '기타'
+        };
         const isMobile = window.innerWidth < 768;
         const chartFontSize = isMobile ? 11 : 12;
         const appState = { config: null, reports: [], bundles: new Map(), activeTab: 'overview' };
@@ -539,6 +566,12 @@
             return value || '-';
         }
 
+        function formatDateOnly(value) {
+            if (!value) return '-';
+            const text = String(value).trim();
+            return text.length >= 10 ? text.slice(0, 10) : text;
+        }
+
         function getSentimentClass(sentiment) {
             if (sentiment === '긍정') return 'sentiment-positive';
             if (sentiment === '부정') return 'sentiment-negative';
@@ -549,6 +582,25 @@
             if (sentimentOrder.includes(sentiment)) return sentiment;
             if (sentiment === '광고') return null;
             return '중립';
+        }
+
+        function normalizeCategory(category) {
+            const value = (category || '').trim();
+            return categoryAliasMap[value] || '기타';
+        }
+
+        function sortCategories(categories) {
+            return [...categories].sort((a, b) => {
+                const indexA = categoryOrder.indexOf(a);
+                const indexB = categoryOrder.indexOf(b);
+                const orderA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+                const orderB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+                return orderA - orderB || a.localeCompare(b, 'ko');
+            });
+        }
+
+        function getAxisName(prefix, index) {
+            return index === 0 ? prefix : `${prefix}${index + 1}`;
         }
 
         function safeText(value) {
@@ -626,7 +678,7 @@
                 const sentiment = normalizeSentiment(row.sentiment);
                 if (!sentiment) return;
 
-                const category = row.category || '기타';
+                const category = normalizeCategory(row.category);
                 const item = {
                     text: row.text,
                     sentiment,
@@ -773,7 +825,7 @@
             overviewSection.innerHTML = `
                 <div class="row g-3 mb-3">
                     <div class="col-6 col-lg-3">${createMetricCard('대상 영상 수', `${bundles.length}개`, '표시 중인 전체 영상')}</div>
-                    <div class="col-6 col-lg-3">${createMetricCard('누적 조회수', formatNumber(totalViews), '각 영상 최신 조회수 합계')}</div>
+                    <div class="col-6 col-lg-3">${createMetricCard('누적 조회수', formatNumber(totalViews), '각 영상 조회수 합계')}</div>
                     <div class="col-6 col-lg-3">${createMetricCard('분석 댓글 수', formatNumber(totalComments), '광고 제외 기준')}</div>
                     <div class="col-6 col-lg-3">${createMetricCard('최종 업데이트', latestUpdate, '가장 최근 수집 시각')}</div>
                 </div>
@@ -781,7 +833,7 @@
                 <div class="card-panel">
                     <div class="panel-header">
                         <h3 class="panel-title">영상별 기본 통계</h3>
-                        <p class="panel-subtitle">탭 이름, URL, 시작 시각, 최신 지표를 한 화면에서 관리할 수 있도록 구성했습니다.</p>
+                        <p class="panel-subtitle">탭 이름, 영상 게재 시점, 조회수와 대표 분류를 한 화면에서 비교합니다.</p>
                     </div>
                     <div class="panel-body">
                         <div class="summary-grid">
@@ -795,7 +847,7 @@
                         <div class="card-panel">
                             <div class="panel-header">
                                 <h3 class="panel-title">전체 감성 분포 비교</h3>
-                                <p class="panel-subtitle">각 영상의 감성 비중을 퍼센트 기준으로 비교합니다.</p>
+                                <p class="panel-subtitle">각 프로그램의 감성 비중을 100% 누적 막대로 비교합니다.</p>
                             </div>
                             <div class="panel-body">
                                 <div id="overviewSentimentChart" class="chart-container short"><div class="empty-msg">차트 로딩 중...</div></div>
@@ -806,10 +858,10 @@
                         <div class="card-panel">
                             <div class="panel-header">
                                 <h3 class="panel-title">분류별 여론 비교</h3>
-                                <p class="panel-subtitle">영상별 주요 분류의 댓글 수를 함께 보여줍니다.</p>
+                                <p class="panel-subtitle">프로그램별 행을 나눠 같은 카테고리를 감성별로 비교합니다.</p>
                             </div>
                             <div class="panel-body">
-                                <div id="overviewCategoryChart" class="chart-container short"><div class="empty-msg">차트 로딩 중...</div></div>
+                                <div id="overviewCategoryChart" class="chart-container category-overview-chart"><div class="empty-msg">차트 로딩 중...</div></div>
                             </div>
                         </div>
                     </div>
@@ -825,23 +877,21 @@
                             <table class="table align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th>탭 이름</th>
-                                        <th>영상 제목</th>
-                                        <th>시작 시각</th>
+                                        <th>프로그램</th>
+                                        <th>게재일</th>
                                         <th>조회수</th>
                                         <th>좋아요</th>
-                                        <th>댓글 수</th>
-                                        <th>분석 댓글 수</th>
-                                        <th>우세 감성</th>
-                                        <th>최다 분류</th>
+                                        <th>댓글</th>
+                                        <th>분석수</th>
+                                        <th>우세감성</th>
+                                        <th>대표분류</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${bundles.map(bundle => `
                                         <tr>
                                             <td class="fw-bold">${safeText(bundle.report.tab_label)}</td>
-                                            <td>${safeText(bundle.report.video_title)}</td>
-                                            <td>${formatDateTime(bundle.report.video_start_at)}</td>
+                                            <td>${formatDateOnly(bundle.report.video_start_at)}</td>
                                             <td>${formatNumber(bundle.latest?.view_count)}</td>
                                             <td>${formatNumber(bundle.latest?.like_count)}</td>
                                             <td>${formatNumber(bundle.latest?.comment_count)}</td>
@@ -873,8 +923,8 @@
                     <div class="badge-soft mb-3">${safeText(report.tab_label)}</div>
                     <div class="fw-bold mb-2">${safeText(report.video_title)}</div>
                     <div class="meta-list">
-                        <div class="meta-line"><strong>시작 시각</strong>${formatDateTime(report.video_start_at)}</div>
-                        <div class="meta-line"><strong>최신 조회수</strong>${formatNumber(bundle.latest?.view_count)}</div>
+                        <div class="meta-line"><strong>영상 게재 시점</strong>${formatDateTime(report.video_start_at)}</div>
+                        <div class="meta-line"><strong>조회수</strong>${formatNumber(bundle.latest?.view_count)}</div>
                         <div class="meta-line"><strong>분석 댓글 수</strong>${formatNumber(bundle.totalComments)}</div>
                         <div class="meta-line"><strong>우세 감성</strong>${bundle.dominantSentiment}</div>
                         <div class="meta-line"><strong>최다 분류</strong>${safeText(bundle.topCategory)}</div>
@@ -887,57 +937,127 @@
 
         function renderOverviewCharts() {
             const bundles = Array.from(appState.bundles.values());
-            const labels = bundles.map(bundle => bundle.report.tab_label || bundle.report.start_date);
             prepareChartContainer('overviewSentimentChart');
             prepareChartContainer('overviewCategoryChart');
 
+            const labels = bundles.map(bundle => bundle.report.tab_label || bundle.report.start_date);
             const sentimentTraces = sentimentOrder.map(sentiment => ({
                 x: labels,
                 y: bundles.map(bundle => {
                     const total = bundle.totalComments || 0;
-                    return total ? Math.round((bundle.sentimentCounts[sentiment] || 0) / total * 1000) / 10 : 0;
+                    const count = bundle.sentimentCounts[sentiment] || 0;
+                    return total ? Math.round((count / total) * 1000) / 10 : 0;
+                }),
+                customdata: bundles.map(bundle => {
+                    const total = bundle.totalComments || 0;
+                    return [bundle.sentimentCounts[sentiment] || 0, total];
                 }),
                 type: 'bar',
                 name: sentiment,
-                marker: { color: colorMap[sentiment] }
+                marker: { color: colorMap[sentiment] },
+                hovertemplate: '%{x}<br>' + sentiment + ': %{customdata[0]}건 (%{y}%)<br>전체: %{customdata[1]}건<extra></extra>'
             }));
 
             Plotly.newPlot('overviewSentimentChart', sentimentTraces, {
-                barmode: 'group',
-                margin: { t: 20, b: 50, l: 48, r: 12 },
-                yaxis: { title: '비중(%)', tickfont: { size: chartFontSize } },
+                barmode: 'stack',
+                barnorm: 'percent',
+                margin: { t: 20, b: 60, l: 48, r: 12 },
                 xaxis: { tickfont: { size: chartFontSize } },
-                legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' }
+                yaxis: { title: '비중(%)', range: [0, 100], tickfont: { size: chartFontSize }, ticksuffix: '%' },
+                legend: { orientation: 'h', y: -0.16, x: 0.5, xanchor: 'center', traceorder: 'normal' }
             }, configOptions);
 
-            const categoryTotals = {};
-            bundles.forEach(bundle => {
-                Object.entries(bundle.categoryCounts).forEach(([category, counts]) => {
-                    const total = Object.values(counts).reduce((acc, value) => acc + value, 0);
-                    categoryTotals[category] = (categoryTotals[category] || 0) + total;
+            const categories = sortCategories(
+                categoryOrder.filter(category => bundles.some(bundle => {
+                    const counts = bundle.categoryCounts[category] || {};
+                    return Object.values(counts).reduce((acc, value) => acc + value, 0) > 0;
+                }))
+            );
+
+            const rowHeight = 0.24;
+            const rowGap = 0.06;
+            const totalHeight = bundles.length * rowHeight + Math.max(0, bundles.length - 1) * rowGap;
+            const topPadding = Math.max(0.02, (1 - totalHeight) / 2);
+            const categoryTraces = [];
+            const axisLayout = {};
+            const annotations = [];
+            const shapes = [];
+
+            bundles.forEach((bundle, index) => {
+                const axisSuffix = index === 0 ? '' : String(index + 1);
+                const xAxisName = getAxisName('x', index);
+                const yAxisName = getAxisName('y', index);
+                const domainEnd = 1 - topPadding - index * (rowHeight + rowGap);
+                const domainStart = Math.max(0, domainEnd - rowHeight);
+
+                sentimentOrder.forEach(sentiment => {
+                    categoryTraces.push({
+                        x: categories,
+                        y: categories.map(category => (bundle.categoryCounts[category] || {})[sentiment] || 0),
+                        type: 'bar',
+                        name: sentiment,
+                        marker: { color: colorMap[sentiment] },
+                        xaxis: xAxisName,
+                        yaxis: yAxisName,
+                        showlegend: index === 0,
+                        hovertemplate: `${bundle.report.tab_label || bundle.report.start_date}<br>%{x}<br>${sentiment}: %{y}건<extra></extra>`
+                    });
                 });
+
+                axisLayout[`xaxis${axisSuffix}`] = {
+                    domain: [0.14, 0.99],
+                    anchor: yAxisName,
+                    tickangle: isMobile ? -35 : -20,
+                    tickfont: { size: chartFontSize },
+                    showgrid: false,
+                    showticklabels: index === bundles.length - 1,
+                    automargin: true
+                };
+                axisLayout[`yaxis${axisSuffix}`] = {
+                    domain: [domainStart, domainEnd],
+                    anchor: xAxisName,
+                    tickfont: { size: chartFontSize },
+                    rangemode: 'tozero',
+                    gridcolor: 'rgba(148, 163, 184, 0.22)',
+                    zerolinecolor: 'rgba(148, 163, 184, 0.32)',
+                    title: { text: '', standoff: 0 },
+                    automargin: true
+                };
+
+                annotations.push({
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0.02,
+                    y: (domainStart + domainEnd) / 2,
+                    text: `<b>${safeText(bundle.report.tab_label)}</b>`,
+                    showarrow: false,
+                    xanchor: 'left',
+                    yanchor: 'middle',
+                    align: 'left',
+                    font: { size: isMobile ? 11 : 12, color: '#334155' }
+                });
+
+                if (index < bundles.length - 1) {
+                    shapes.push({
+                        type: 'line',
+                        xref: 'paper',
+                        yref: 'paper',
+                        x0: 0.14,
+                        x1: 0.99,
+                        y0: domainStart - (rowGap / 2),
+                        y1: domainStart - (rowGap / 2),
+                        line: { color: 'rgba(148, 163, 184, 0.28)', width: 1 }
+                    });
+                }
             });
 
-            const topCategories = Object.keys(categoryTotals)
-                .sort((a, b) => categoryTotals[b] - categoryTotals[a])
-                .slice(0, 8);
-
-            const categoryTraces = bundles.map(bundle => ({
-                x: topCategories,
-                y: topCategories.map(category => {
-                    const counts = bundle.categoryCounts[category] || {};
-                    return Object.values(counts).reduce((acc, value) => acc + value, 0);
-                }),
-                type: 'bar',
-                name: bundle.report.tab_label || bundle.report.start_date
-            }));
-
             Plotly.newPlot('overviewCategoryChart', categoryTraces, {
-                barmode: 'group',
-                margin: { t: 20, b: 100, l: 48, r: 12 },
-                xaxis: { tickangle: -28, tickfont: { size: chartFontSize } },
-                yaxis: { tickfont: { size: chartFontSize } },
-                legend: { orientation: 'h', y: -0.28, x: 0.5, xanchor: 'center' }
+                barmode: 'stack',
+                margin: { t: 12, b: 88, l: 12, r: 12 },
+                legend: { orientation: 'h', y: -0.12, x: 0.5, xanchor: 'center', traceorder: 'normal' },
+                annotations,
+                shapes,
+                ...axisLayout
             }, configOptions);
         }
 
@@ -959,7 +1079,7 @@
                                 <div class="badge-soft mb-3">${safeText(report.tab_label)} · ${safeText(report.start_date)}</div>
                                 <div class="detail-title">${safeText(report.video_title)}</div>
                                 <div class="meta-list">
-                                    <div class="meta-line"><strong>영상 시작 시각</strong>${formatDateTime(report.video_start_at)}</div>
+                                    <div class="meta-line"><strong>영상 게재 시점</strong>${formatDateTime(report.video_start_at)}</div>
                                     <div class="meta-line"><strong>최종 업데이트</strong>${formatDateTime(bundle.latest?.timestamp)}</div>
                                     <div class="meta-line"><strong>링크</strong>${urlHtml}</div>
                                 </div>
@@ -978,7 +1098,6 @@
                 <div class="card-panel">
                     <div class="panel-header">
                         <h3 class="panel-title">시간대별 누적 조회수 추이</h3>
-                        <p class="panel-subtitle">설정한 영상 시작 시각을 기준으로 첫 지점을 보정해 보여줍니다.</p>
                     </div>
                     <div class="panel-body">
                         <div id="detailViewChart" class="chart-container"><div class="empty-msg">차트 로딩 중...</div></div>
@@ -1014,7 +1133,6 @@
                     <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h3 class="panel-title">전체 분석 데이터</h3>
-                            <p class="panel-subtitle">모바일에서도 가로 스크롤과 정렬 기능을 그대로 사용할 수 있습니다.</p>
                         </div>
                         <div class="badge-soft">총 ${formatNumber(bundle.totalComments)}건</div>
                     </div>
@@ -1079,14 +1197,15 @@
             }], {
                 margin: { t: 20, b: 20, l: 20, r: 20 },
                 showlegend: true,
-                legend: { orientation: 'h', y: -0.12, x: 0.5, xanchor: 'center' }
+                legend: { orientation: 'h', y: -0.12, x: 0.5, xanchor: 'center', traceorder: 'normal' }
             }, configOptions);
 
-            const categories = Object.keys(bundle.categoryCounts).sort((a, b) => {
-                const sumA = Object.values(bundle.categoryCounts[a]).reduce((acc, value) => acc + value, 0);
-                const sumB = Object.values(bundle.categoryCounts[b]).reduce((acc, value) => acc + value, 0);
-                return sumA - sumB;
-            });
+            const categories = sortCategories(
+                Object.keys(bundle.categoryCounts).filter(category => {
+                    const total = Object.values(bundle.categoryCounts[category] || {}).reduce((acc, value) => acc + value, 0);
+                    return total > 0;
+                })
+            );
 
             const traces = sentimentOrder.map(sentiment => ({
                 x: categories.map(category => (bundle.categoryCounts[category] || {})[sentiment] || 0),
@@ -1102,7 +1221,7 @@
                 margin: { t: 20, b: 70, l: 110, r: 12 },
                 xaxis: { tickfont: { size: chartFontSize } },
                 yaxis: { tickfont: { size: chartFontSize } },
-                legend: { orientation: 'h', y: -0.22, x: 0.5, xanchor: 'center' }
+                legend: { orientation: 'h', y: -0.22, x: 0.5, xanchor: 'center', traceorder: 'normal' }
             }, configOptions);
         }
 

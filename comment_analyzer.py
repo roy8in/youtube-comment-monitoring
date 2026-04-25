@@ -1,11 +1,29 @@
 import json
 import os
-import re
 
 from dotenv import load_dotenv
-from openai import OpenAI
 
 load_dotenv()
+
+
+CATEGORY_ALIAS_MAP = {
+    "국민연금 조직": "국민연금 조직",
+    "운용성과": "운용성과",
+    "기금수익": "운용성과",
+    "투자전략": "투자전략",
+    "국내주식": "투자전략",
+    "해외투자": "투자전략",
+    "주택투자": "투자전략",
+    "연금제도": "연금제도",
+    "퇴직연금": "퇴직연금",
+    "세대형평": "세대형평",
+    "정부개입": "정부개입·거버넌스",
+    "주주권행사": "정부개입·거버넌스",
+    "정부개입·거버넌스": "정부개입·거버넌스",
+    "지역발전": "지역발전",
+    "전북금융생태계": "지역발전",
+    "기타": "기타",
+}
 
 
 def normalize_sentiment_label(sentiment: str | None) -> str:
@@ -21,6 +39,11 @@ def normalize_sentiment_label(sentiment: str | None) -> str:
     if value == "기타":
         return "중립"
     return "중립"
+
+
+def normalize_category_label(category: str | None) -> str:
+    value = (category or "").strip()
+    return CATEGORY_ALIAS_MAP.get(value, "기타")
 
 
 def _build_prompt(prompt_template: str, comments: list) -> str:
@@ -41,6 +64,15 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
     """OpenRouter를 사용하여 댓글의 감성과 주요 키워드를 분석합니다."""
     if not comments:
         return []
+
+    try:
+        from openai import OpenAI
+    except ModuleNotFoundError:
+        print("CRITICAL ERROR: openai 패키지가 설치되어 있지 않습니다.")
+        return [
+            {"text": t, "sentiment": "오류", "category": "기타", "keyword": "SDK누락"}
+            for t in comments
+        ]
 
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
@@ -93,6 +125,7 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
                 for item in result_dict["data"]:
                     normalized_item = item.copy()
                     normalized_item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
+                    normalized_item["category"] = normalize_category_label(item.get("category"))
                     normalized_batch.append(normalized_item)
                 analyzed_data.extend(normalized_batch)
             else:
@@ -125,6 +158,7 @@ def analyze_comments_with_llm(comments: list, prompt_template: str) -> list:
                     for item in result_dict["data"]:
                         normalized_item = item.copy()
                         normalized_item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
+                        normalized_item["category"] = normalize_category_label(item.get("category"))
                         normalized_batch.append(normalized_item)
                     analyzed_data.extend(normalized_batch)
                 except Exception as single_error:

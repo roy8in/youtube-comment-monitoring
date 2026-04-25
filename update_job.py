@@ -1,7 +1,11 @@
 import os
 import pandas as pd
 from comment_collector import fetch_youtube_comments, fetch_video_stats
-from comment_analyzer import analyze_comments_with_llm, normalize_sentiment_label
+from comment_analyzer import (
+    analyze_comments_with_llm,
+    normalize_category_label,
+    normalize_sentiment_label,
+)
 from config_loader import (
     get_collectable_reports,
     load_dashboard_config,
@@ -94,6 +98,7 @@ def run_update_for_report(report, config):
                     item = result.copy()
                     item["text"] = new_comments[i]
                     item["sentiment"] = normalize_sentiment_label(item.get("sentiment"))
+                    item["category"] = normalize_category_label(item.get("category"))
                     final_data.append(item)
 
             new_df = pd.DataFrame(final_data)
