@@ -974,10 +974,10 @@
                 }))
             );
 
-            const rowHeight = 0.24;
-            const rowGap = 0.06;
+            const rowHeight = 0.25;
+            const rowGap = 0.04;
             const totalHeight = bundles.length * rowHeight + Math.max(0, bundles.length - 1) * rowGap;
-            const topPadding = Math.max(0.02, (1 - totalHeight) / 2);
+            const topPadding = Math.max(0.015, (1 - totalHeight) / 2);
             const categoryTraces = [];
             const axisLayout = {};
             const annotations = [];
@@ -1005,7 +1005,7 @@
                 });
 
                 axisLayout[`xaxis${axisSuffix}`] = {
-                    domain: [0.14, 0.99],
+                    domain: [0.08, 0.995],
                     anchor: yAxisName,
                     tickangle: isMobile ? -35 : -20,
                     tickfont: { size: chartFontSize },
@@ -1027,13 +1027,14 @@
                 annotations.push({
                     xref: 'paper',
                     yref: 'paper',
-                    x: 0.02,
+                    x: 0.028,
                     y: (domainStart + domainEnd) / 2,
                     text: `<b>${safeText(bundle.report.tab_label)}</b>`,
                     showarrow: false,
-                    xanchor: 'left',
+                    xanchor: 'center',
                     yanchor: 'middle',
                     align: 'left',
+                    textangle: -90,
                     font: { size: isMobile ? 11 : 12, color: '#334155' }
                 });
 
@@ -1042,8 +1043,8 @@
                         type: 'line',
                         xref: 'paper',
                         yref: 'paper',
-                        x0: 0.14,
-                        x1: 0.99,
+                        x0: 0.08,
+                        x1: 0.995,
                         y0: domainStart - (rowGap / 2),
                         y1: domainStart - (rowGap / 2),
                         line: { color: 'rgba(148, 163, 184, 0.28)', width: 1 }
@@ -1053,7 +1054,7 @@
 
             Plotly.newPlot('overviewCategoryChart', categoryTraces, {
                 barmode: 'stack',
-                margin: { t: 12, b: 88, l: 12, r: 12 },
+                margin: { t: 10, b: 84, l: 6, r: 8 },
                 legend: { orientation: 'h', y: -0.12, x: 0.5, xanchor: 'center', traceorder: 'normal' },
                 annotations,
                 shapes,
