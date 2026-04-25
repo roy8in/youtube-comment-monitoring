@@ -1,67 +1,118 @@
-# 📊 국민연금 유튜브 여론 모니터링 대시보드
+# 국민연금 이사장 유튜브 여론 모니터링 대시보드
 
 **🔗 [실시간 대시보드 바로가기](https://roy8in.github.io/youtube-comment-monitoring/)**
 
-이 프로젝트는 국민연금공단(NPS)과 관련된 유튜브 영상의 반응을 실시간으로 수집하고, AI를 통해 여론을 분석하여 시각화하는 모니터링 시스템입니다.
+여러 개의 유튜브 영상을 한 번에 추적하고, 새 댓글만 AI로 분석해 대표 페이지와 영상별 탭 대시보드로 보여주는 정적 모니터링 시스템입니다.
 
-## 🚀 주요 기능
+## 주요 구성
 
-### 1. 실시간 영상 통계 추적
-*   **조회수 추이**: 영상 게시 이후 시간대별 누적 조회수 변화를 그래프로 보여줍니다.
-*   **상태 모니터링**: 좋아요 수, 댓글 수 등 핵심 지표를 함께 관리합니다.
+- 대표 페이지: 전체 영상의 감성 분포, 분류별 여론, 기본 통계 비교
+- 영상별 탭: 조회수 추이, 감성 분포, 분류별 여론, 전체 댓글 분석 결과
+- 멀티 영상 수집: GitHub Actions 한 번 실행으로 여러 영상의 통계와 댓글을 순회 수집
+- 증분 분석: 이미 저장된 댓글은 건너뛰고 새 댓글만 OpenRouter로 분석
 
-### 2. AI 기반 댓글 감성 분석
-*   **감성 분류**: 각 댓글을 '긍정', '부정', '중립'으로 자동 분류합니다.
-*   **분석 기준**: 국민연금 제도, 기금 운용, 공단 조직 및 이사장에 대한 태도를 기준으로 합니다.
-*   **필터링**: 스팸이나 광고성 댓글은 분석에서 제외하여 노이즈를 줄였습니다.
+## 설정 파일 구조
 
-### 3. 주제별 여론 분류
-*   수집된 댓글을 아래와 같은 8개 주요 카테고리로 자동 분류합니다.
-    *   **국내/해외 투자**, **주택투자**, **연금제도**, **퇴직연금**, **조직/인력**, **주주권행사**, **기타**
-
-## ⚙️ 데이터 분석 프로세스
-
-1.  **데이터 수집**: 유튜브 API를 통해 최신 댓글과 영상 통계를 가져옵니다.
-2.  **중복 제거**: 이미 분석된 댓글은 건너뛰고 새로운 댓글만 추출합니다.
-3.  **AI 분석**: OpenRouter의 `openai/gpt-4o-mini` 모델을 사용하여 문맥을 파악하고 감성/주제를 분류합니다.
-4.  **자동 업데이트**: GitHub Actions를 통해 정해진 주기마다 자동으로 데이터를 갱신합니다.
-
-## 🔁 다른 유튜브 영상으로 바꾸는 방법
-
-이 프로젝트는 `dashboard_config.json`을 기준으로 수집 대상을 결정합니다.
-
-1. `dashboard_config.json`의 `video_url`을 새 영상 URL로 변경합니다.
-   - `https://youtu.be/fNHLffyXnQM?si=RpMYiECR4H0xm9Es` 같은 `youtu.be` 링크도 그대로 사용할 수 있습니다.
-   - 내부 코드가 `video_id`를 자동으로 추출하므로, `watch?v=...` 형식으로 바꿔도 동작합니다.
-2. `dashboard_config.json`의 `video_title`도 새 영상 제목으로 함께 바꿉니다.
-3. `target_date`를 새 값으로 바꿉니다.
-   - 이 값은 저장 파일 이름에 사용됩니다.
-   - 예: `analyzed_comments_<target_date>.csv`, `video_stats_<target_date>.csv`, `prompt_<target_date>.txt`
-4. 같은 이름의 `prompt_<target_date>.txt` 파일이 있는지 확인합니다.
-   - `update_job.py`가 이 파일을 읽어서 댓글 분석 프롬프트로 사용합니다.
-
-예시:
+모든 영상 메타데이터는 [dashboard_config.json](/Users/binmoojin/work/youtube-comment-monitoring/dashboard_config.json)에서 관리합니다.
 
 ```json
 {
-  "target_date": "20260422",
-  "video_url": "https://youtu.be/fNHLffyXnQM?si=RpMYiECR4H0xm9Es",
-  "video_title": "새 영상 제목"
+  "dashboard_title": "국민연금 이사장 유튜브 여론 모니터링",
+  "default_report_id": "sampro_ceo_ep1_20260423",
+  "default_prompt_file": "prompt_base.txt",
+  "reports": [
+    {
+      "id": "sampro_ceo_ep1_20260423",
+      "tab_label": "삼프로TV",
+      "video_title": "영상 제목",
+      "video_url": "https://youtu.be/...",
+      "start_date": "20260423",
+      "video_start_at": "2026-04-23 19:00:00",
+      "prompt_file": "prompt_20260423.txt",
+      "enabled": true,
+      "collect_enabled": true
+    }
+  ]
 }
 ```
 
-참고로 댓글 수집/통계 수집 로직은 `comment_collector.py`에서 유튜브 URL을 받아 `video_id`를 추출한 뒤 API를 호출합니다. 그래서 URL 자체는 `youtu.be` 형식 그대로 넣어도 됩니다.
+## 필드 설명
 
-GitHub Actions에서도 자동 분석이 돌아가려면 저장소 `Secrets and variables > Actions`에 아래 시크릿이 있어야 합니다.
+- `id`: 내부 식별자
+- `tab_label`: 탭에 표시할 이름
+- `video_title`: 화면에 표시할 제목
+- `video_url`: 실제 유튜브 URL
+- `start_date`: 파일명 기준 키
+- `video_start_at`: 영상 시작 시각. `video_stats_<start_date>.csv`의 기준 시작점으로 사용
+- `prompt_file`: 영상 전용 프롬프트 파일. 없으면 `default_prompt_file` 사용
+- `enabled`: 대시보드에 표시할지 여부
+- `collect_enabled`: GitHub Actions 수집 대상 포함 여부
+
+## 새 영상 추가 방법
+
+1. [dashboard_config.json](/Users/binmoojin/work/youtube-comment-monitoring/dashboard_config.json)에 `reports` 항목을 추가합니다.
+2. 아래 값을 채웁니다.
+   - `video_url`
+   - `tab_label`
+   - `video_title`
+   - `start_date`
+   - `video_start_at`
+3. 프롬프트가 기존 영상들과 크게 다르지 않으면 `prompt_file`을 생략하고 `prompt_base.txt`를 그대로 사용합니다.
+4. 영상별 분류 기준이 필요하면 `prompt_<start_date>.txt`를 새로 만들고 `prompt_file`에 연결합니다.
+5. `collect_enabled: true`로 두면 GitHub Actions가 다음 실행부터 자동 수집합니다.
+
+## 파일 규칙
+
+- 댓글 분석 결과: `analyzed_comments_<start_date>.csv`
+- 영상 통계: `video_stats_<start_date>.csv`
+- 영상 전용 프롬프트: `prompt_<start_date>.txt`
+- 공통 프롬프트: `prompt_base.txt`
+
+## GitHub Actions 동작 방식
+
+[.github/workflows/update_data.yml](/Users/binmoojin/work/youtube-comment-monitoring/.github/workflows/update_data.yml)은 정해진 주기마다 [update_job.py](/Users/binmoojin/work/youtube-comment-monitoring/update_job.py)를 실행합니다.
+
+실행 흐름은 아래와 같습니다.
+
+1. `dashboard_config.json`의 `reports` 목록을 읽습니다.
+2. `collect_enabled: true`인 영상을 순서대로 처리합니다.
+3. 각 영상마다
+   - 최신 조회수, 좋아요, 댓글 수를 수집합니다.
+   - `video_stats_<start_date>.csv`에 새 행을 추가합니다.
+   - 댓글을 수집합니다.
+   - 기존 CSV와 비교해 새 댓글만 추립니다.
+   - 새 댓글만 OpenRouter로 감성/주제 분석합니다.
+   - 결과를 `analyzed_comments_<start_date>.csv` 뒤에 추가합니다.
+
+즉, GitHub Actions 한 번 실행 시 여러 영상이 모두 갱신되고, OpenRouter는 새 댓글에 대해서만 호출됩니다.
+
+## 수동 실행
+
+```bash
+python update_job.py
+```
+
+특정 영상 CSV를 다시 분석하려면:
+
+```bash
+python reanalyze_existing_comments.py --report-id sampro_ceo_ep1_20260423
+```
+
+## 필요한 시크릿
+
+GitHub Actions와 로컬 실행 모두 아래 값이 필요합니다.
 
 - `YOUTUBE_API_KEY`
 - `OPENROUTER_API_KEY`
 
-## ⚠️ 면책조항 (Disclaimer)
+선택 환경 변수:
 
-*   **AI 분석의 한계**: 본 대시보드에 표시되는 감성 및 주제 분류 결과는 LLM(Large Language Model)에 의한 자동 분석 결과입니다. AI의 특성상 문맥 오판이나 반어법 인식 오류가 발생할 수 있으므로, 실제 작성자의 의도와 다를 수 있습니다.
-*   **데이터 오차**: 수집된 수치는 유튜브 API 제공 시점에 의존하며, 실제 유튜브 서비스상에 표시되는 실시간 수치와 미세한 차이가 있을 수 있습니다.
-*   **책임**: 본 대시보드는 여론 파악을 위한 참고용으로 제작되었습니다. 이를 근거로 한 모든 의사결정에 대한 책임은 사용자에게 있습니다.
+- `OPENROUTER_MODEL`
+- `OPENROUTER_BATCH_SIZE`
+- `OPENROUTER_TIMEOUT`
 
----
-*본 프로젝트는 국민연금 유튜브 여론의 효율적인 모니터링과 데이터 기반의 홍보 전략 수립을 지원하기 위해 개발되었습니다.*
+## 참고
+
+- `video_start_at`은 실제 게시 시각에 맞게 수동 보정할수록 조회수 추이 해석이 더 정확해집니다.
+- 댓글 수가 아주 적은 영상은 대표 페이지에서 표본이 적다는 표시가 함께 보입니다.
+- 기존 댓글 분류 체계가 영상별로 달라도 대시보드는 그대로 집계해 보여줍니다.
