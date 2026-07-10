@@ -417,6 +417,31 @@ YouTube API를 사용하려면 `YOUTUBE_API_KEY`가 필요합니다. 이 값도 
         └── update_data.yml
 ```
 
+## 저장소에 올리지 않는 파일
+
+이 저장소에는 운영에 필요한 코드, 설정, 프롬프트, CSV 데이터만 남기는 것을 원칙으로 합니다.
+
+아래 파일과 폴더는 로컬 작업 중 자동으로 생길 수 있지만 GitHub에 올리지 않습니다.
+
+- `.env`: API Key가 들어 있는 로컬 환경 변수 파일
+- `.venv/`: Python 가상환경
+- `__pycache__/`: Python 실행 중 생기는 캐시
+- `*.pyc`: Python 바이트코드 캐시
+- `.DS_Store`: macOS Finder가 만드는 메타데이터 파일
+- `.pytest_cache/`, `.mypy_cache/`: 테스트나 타입 검사 도구 캐시
+
+이 파일들은 `.gitignore`에 등록되어 있어 새로 생겨도 Git이 추적하지 않습니다.
+
+과거 Streamlit 기반 개발 환경 설정이었던 `.devcontainer/`는 현재 구조와 맞지 않아 제거했습니다. 지금 대시보드는 Streamlit 서버가 아니라 `index.html` 정적 페이지와 CSV 파일을 GitHub Pages에서 직접 읽는 방식입니다.
+
+Python 의존성도 현재 자동 업데이트에 필요한 최소 패키지만 남겼습니다.
+
+- `pandas`: CSV 읽기와 쓰기
+- `python-dotenv`: 로컬 `.env` 파일 읽기
+- `openai`: OpenRouter API 호출
+
+대시보드 차트에 쓰는 Plotly는 Python 패키지가 아니라 `index.html`에서 CDN으로 불러옵니다.
+
 ### `index.html`
 
 대시보드 화면입니다.
