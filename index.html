@@ -764,8 +764,8 @@
 
     <script>
         const configOptions = { responsive: true, displayModeBar: false };
-        const colorMap = { '긍정': '#16A34A', '부정': '#DC2626', '중립': '#94A3B8' };
-        const sentimentOrder = ['긍정', '부정', '중립'];
+        const colorMap = { '긍정': '#16A34A', '부정': '#DC2626', '중립': '#94A3B8', '오류': '#A855F7' };
+        const sentimentOrder = ['긍정', '부정', '중립', '오류'];
         const categoryOrder = ['국민연금 조직', '운용성과', '투자전략', '연금제도', '퇴직연금', '세대형평', '정부개입·거버넌스', '지역발전', '기타'];
         const categoryAliasMap = {
             '국민연금 조직': '국민연금 조직',
@@ -815,6 +815,7 @@
         function getSentimentClass(sentiment) {
             if (sentiment === '긍정') return 'sentiment-positive';
             if (sentiment === '부정') return 'sentiment-negative';
+            if (sentiment === '오류') return 'sentiment-other';
             return 'sentiment-neutral';
         }
 
@@ -973,7 +974,7 @@
 
         function buildCommentData(commentRows) {
             const data = [];
-            const sentimentCounts = { '긍정': 0, '부정': 0, '중립': 0 };
+            const sentimentCounts = { '긍정': 0, '부정': 0, '중립': 0, '오류': 0 };
             const categoryCounts = {};
 
             commentRows.forEach(row => {
@@ -994,7 +995,7 @@
                 data.push(item);
                 sentimentCounts[sentiment] += 1;
                 if (!categoryCounts[category]) {
-                    categoryCounts[category] = { '긍정': 0, '부정': 0, '중립': 0 };
+                    categoryCounts[category] = { '긍정': 0, '부정': 0, '중립': 0, '오류': 0 };
                 }
                 categoryCounts[category][sentiment] += 1;
             });

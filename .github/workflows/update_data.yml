@@ -23,10 +23,17 @@ jobs:
       - name: 필요 라이브러리 설치
         run: |
           pip install -r requirements.txt
+
+      - name: 파이썬 문법 검사
+        run: |
+          python -m py_compile update_job.py comment_collector.py comment_analyzer.py config_loader.py reanalyze_existing_comments.py
           
       - name: 데이터 업데이트 및 결과 저장
         env:
+          PYTHONUNBUFFERED: "1"
+          LOG_LEVEL: INFO
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_API_TIMEOUT: 30
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: openai/gpt-4o-mini
           OPENROUTER_BATCH_SIZE: 10

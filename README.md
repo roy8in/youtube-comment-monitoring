@@ -18,7 +18,7 @@
 
 - 영상 조회수, 좋아요 수, 댓글 수의 시간별 변화
 - 댓글 원문
-- 댓글의 감성 분류: `긍정`, `중립`, `부정`, `광고`
+- 댓글의 감성 분류: `긍정`, `중립`, `부정`, `광고`, `오류`
 - 댓글의 주제 분류: 예를 들어 `운용성과`, `투자전략`, `연금제도`, `정부개입·거버넌스` 등
 - 댓글에서 뽑은 주요 키워드
 
@@ -1131,8 +1131,11 @@ def normalize(text):
 - `중립`
 - `부정`
 - `광고`
+- `오류`
 
 AI가 `기타`처럼 애매한 값을 반환하면 현재 코드는 대체로 `중립`으로 정리합니다.
+
+OpenRouter 호출 실패, 응답 형식 오류, 분석 결과 누락처럼 운영자가 확인해야 하는 문제는 `오류`로 남깁니다. 이렇게 해야 대시보드와 CSV에서 분석 실패를 `중립` 댓글로 오해하지 않을 수 있습니다.
 
 카테고리 라벨은 [comment_analyzer.py](comment_analyzer.py)의 `CATEGORY_ALIAS_MAP`에서 정리합니다.
 
@@ -1146,7 +1149,7 @@ CSV를 직접 수정할 수는 있지만 아래를 지켜야 합니다.
 
 - CSV 헤더를 바꾸지 마세요.
 - `text` 컬럼은 댓글 원문을 유지하는 것이 좋습니다.
-- `sentiment` 값은 `긍정`, `중립`, `부정`, `광고` 중 하나로 맞추는 것이 좋습니다.
+- `sentiment` 값은 `긍정`, `중립`, `부정`, `광고`, `오류` 중 하나로 맞추는 것이 좋습니다.
 - `category` 값은 대시보드에서 의미 있게 묶일 수 있는 값으로 맞춰야 합니다.
 - Excel에서 열었다가 저장하면 인코딩이나 줄바꿈이 깨질 수 있으니 주의해야 합니다.
 
@@ -1236,6 +1239,63 @@ python reanalyze_existing_comments.py --report-id sampro_ceo_ep1_20260423
 ```
 
 GitHub Actions의 scheduled workflow는 정확히 초 단위로 실행되는 스케줄러가 아니며, GitHub 상황에 따라 지연될 수 있습니다.
+
+## 디버깅과 운영 로그
+
+자동 업데이트가 실패하거나 예상과 다르게 동작할 때는 먼저 GitHub Actions 로그를 확인합니다.
+
+GitHub 웹사이트에서 보통 아래 경로로 이동합니다.
+
+```text
+Repository > Actions > Auto Update YouTube PR Data > 실패한 실행 선택
+```
+
+이 프로젝트는 운영 중 원인을 찾기 쉽도록 Python의 `logging`을 사용합니다.
+
+기본 로그 레벨은 `INFO`입니다. 더 자세한 로그가 필요하면 로컬 실행이나 GitHub Actions 환경 변수에서 아래처럼 설정할 수 있습니다.
+
+```text
+LOG_LEVEL=DEBUG
+```
+
+DEBUG 로그에서는 YouTube API 요청의 endpoint와 key가 가려진 요청 파라미터, 댓글 페이지 수집 진행 상황, OpenRouter 원본 응답 일부가 추가로 표시됩니다.
+
+API Key는 로그에 직접 출력하지 않도록 처리되어 있습니다.
+
+### 주요 로그에서 확인할 것
+
+`댓글 수집 완료` 로그는 YouTube에서 댓글을 몇 개 가져왔는지 보여줍니다.
+
+`댓글 비교 완료` 로그는 전체 수집 댓글, 기존 댓글, 신규 댓글 수를 보여줍니다.
+
+`OpenRouter 배치 분석 시작` 로그는 어떤 모델로 몇 번째 배치를 분석하는지 보여줍니다.
+
+`OpenRouter 배치 분석 실패 후 단건 재시도` 로그가 보이면 AI 응답 형식이 기대와 달라서 댓글 하나씩 다시 분석했다는 뜻입니다.
+
+`업데이트 요약` 로그는 전체 report 중 성공과 실패 개수를 보여줍니다.
+
+### 디버깅에 유용한 환경 변수
+
+```text
+LOG_LEVEL=INFO
+YOUTUBE_API_TIMEOUT=30
+OPENROUTER_TIMEOUT=60
+OPENROUTER_BATCH_SIZE=10
+```
+
+`LOG_LEVEL`은 로그 상세도를 조절합니다. 일반 운영은 `INFO`, 원인 분석은 `DEBUG`를 사용합니다.
+
+`YOUTUBE_API_TIMEOUT`은 YouTube API 응답을 기다릴 최대 시간입니다.
+
+`OPENROUTER_TIMEOUT`은 OpenRouter 응답을 기다릴 최대 시간입니다.
+
+`OPENROUTER_BATCH_SIZE`는 한 번에 몇 개 댓글을 AI 모델로 분석할지 정합니다. 값이 너무 크면 응답 형식 오류나 timeout이 늘 수 있고, 너무 작으면 호출 횟수와 비용이 늘 수 있습니다.
+
+### 일부 report 실패 처리
+
+`update_job.py`는 한 report에서 오류가 나도 가능한 경우 다음 report까지 계속 확인합니다.
+
+마지막에는 실패한 report 목록을 요약하고, 실패가 있으면 GitHub Actions 실행을 실패 상태로 끝냅니다. 이렇게 하면 조용히 실패를 숨기지 않고 Actions 화면에서 바로 문제를 확인할 수 있습니다.
 
 ## 문제 해결
 
