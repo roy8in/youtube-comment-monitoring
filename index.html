@@ -1051,8 +1051,8 @@
                 const loadedBundles = await Promise.all(
                     reports.map(async report => {
                         const [statsRows, commentRows] = await Promise.all([
-                            parseCsv(`video_stats_${report.start_date}.csv`),
-                            parseCsv(`analyzed_comments_${report.start_date}.csv`)
+                            parseCsv(`video_stats/video_stats_${report.start_date}.csv`),
+                            parseCsv(`analyzed_comments/analyzed_comments_${report.start_date}.csv`)
                         ]);
                         return buildBundle(report, statsRows, commentRows);
                     })

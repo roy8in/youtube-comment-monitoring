@@ -1,7 +1,11 @@
 import json
+from pathlib import Path
 
 
 CONFIG_FILE = "dashboard_config.json"
+ANALYZED_COMMENTS_DIR = Path("analyzed_comments")
+PROMPT_DIR = Path("prompt")
+VIDEO_STATS_DIR = Path("video_stats")
 
 
 def load_dashboard_config(path: str = CONFIG_FILE) -> dict:
@@ -45,13 +49,21 @@ def get_collectable_reports(config: dict) -> list[dict]:
     return collectable
 
 
+def path_in_directory(path_value: str, directory: Path) -> str:
+    path = Path(path_value)
+    if path.is_absolute() or len(path.parts) > 1:
+        return str(path)
+    return str(directory / path)
+
+
 def resolve_prompt_file(report: dict, config: dict) -> str:
-    return report.get("prompt_file") or config.get("default_prompt_file") or "prompt_base.txt"
+    prompt_file = report.get("prompt_file") or config.get("default_prompt_file") or "prompt_base.txt"
+    return path_in_directory(prompt_file, PROMPT_DIR)
 
 
 def data_file_for_report(report: dict) -> str:
-    return f"analyzed_comments_{report['start_date']}.csv"
+    return str(ANALYZED_COMMENTS_DIR / f"analyzed_comments_{report['start_date']}.csv")
 
 
 def stats_file_for_report(report: dict) -> str:
-    return f"video_stats_{report['start_date']}.csv"
+    return str(VIDEO_STATS_DIR / f"video_stats_{report['start_date']}.csv")

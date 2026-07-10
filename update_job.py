@@ -39,12 +39,20 @@ def build_initial_stats_frame(report, title):
     )
 
 
+def ensure_parent_directory(file_path):
+    directory = os.path.dirname(file_path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+
 def run_update_for_report(report, config):
     report_id = report.get("id", report.get("start_date"))
     video_url = report["video_url"]
     data_file = data_file_for_report(report)
     stats_file = stats_file_for_report(report)
     prompt_file = resolve_prompt_file(report, config)
+    ensure_parent_directory(data_file)
+    ensure_parent_directory(stats_file)
 
     print(f"[{report_id}] 업데이트 시작")
 
