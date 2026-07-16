@@ -4,31 +4,88 @@ on:
   push:
     branches:
       - main
+
   schedule:
     - cron: '*/5 * * * *'  # 5분마다 실행
-  workflow_dispatch:        # GitHub에서 수동 버튼 클릭으로도 실행 가능
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행 모드'
+        required: true
+        default: 'update'
+        type: choice
+        options:
+          - update
+          - reanalyze
+
+      report_id:
+        description: '재분석할 report ID (update 실행 시에는 비워도 됨)'
+        required: false
+        default: 'jtbc_rebalancing_20260716'
+        type: string
 
 jobs:
   update-dashboard-data:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
     steps:
       - name: 저장소 체크아웃
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: 파이썬 환경 설정
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
+
       - name: 필요 라이브러리 설치
         run: |
           pip install -r requirements.txt
 
       - name: 파이썬 문법 검사
         run: |
-          python -m py_compile update_job.py comment_collector.py comment_analyzer.py config_loader.py reanalyze_existing_comments.py
-          
-      - name: 데이터 업데이트 및 결과 저장
+          python -m py_compile \
+            update_job.py \
+            comment_collector.py \
+            comment_analyzer.py \
+            config_loader.py \
+            reanalyze_existing_comments.py
+
+      - name: Git 설정 및 최신 코드 가져오기
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email \
+            'github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main
+
+      - name: 실행 모드 확인
+        id: execution
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+            echo "report_id=${{ inputs.report_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=update" >> "$GITHUB_OUTPUT"
+            echo "report_id=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 입력값 검증
+        if: steps.execution.outputs.mode == 'reanalyze'
+        shell: bash
+        run: |
+          if [[ -z "${{ steps.execution.outputs.report_id }}" ]]; then
+            echo "reanalyze 실행 시 report_id가 필요합니다."
+            exit 1
+          fi
+
+      - name: 새 댓글 및 통계 업데이트
+        if: steps.execution.outputs.mode == 'update'
         env:
           PYTHONUNBUFFERED: "1"
           LOG_LEVEL: INFO
@@ -40,15 +97,41 @@ jobs:
           OPENROUTER_TIMEOUT: 60
           TZ: Asia/Seoul
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # 1. 최신 코드 가져오기
-          git pull --rebase origin main
-          
-          # 2. 데이터 업데이트 스크립트 실행
           python update_job.py
-          
-          # 3. 결과 저장
-          git add analyzed_comments/ video_stats/ prompt/ dashboard_config.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update data" && git push)
+
+      - name: 기존 댓글 전체 재분석
+        if: steps.execution.outputs.mode == 'reanalyze'
+        env:
+          PYTHONUNBUFFERED: "1"
+          LOG_LEVEL: INFO
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: openai/gpt-4o-mini
+          OPENROUTER_BATCH_SIZE: 10
+          OPENROUTER_TIMEOUT: 60
+          TZ: Asia/Seoul
+        run: |
+          python reanalyze_existing_comments.py \
+            --report-id "${{ steps.execution.outputs.report_id }}"
+
+      - name: 결과 커밋 및 푸시
+        shell: bash
+        run: |
+          git add \
+            analyzed_comments/ \
+            video_stats/ \
+            prompt/ \
+            dashboard_config.json
+
+          if git diff --staged --quiet; then
+            echo "저장할 변경사항이 없습니다."
+            exit 0
+          fi
+
+          if [[ "${{ steps.execution.outputs.mode }}" == "reanalyze" ]]; then
+            git commit -m \
+              "Reanalyze comments: ${{ steps.execution.outputs.report_id }}"
+          else
+            git commit -m "Auto-update data"
+          fi
+
+          git push origin main
