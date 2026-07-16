@@ -35,6 +35,17 @@
       "prompt_file": "prompt/prompt_20260423.txt",
       "enabled": true,
       "collect_enabled": true
+    },
+    {
+      "id": "jtbc_rebalancing_20260716",
+      "tab_label": "장르만 여의도",
+      "video_title": "국민연금 '리밸런싱' 이대로 괜찮나? 이사장 본인 등판",
+      "video_url": "https://youtu.be/_OQNFmmR9kQ",
+      "start_date": "20260716",
+      "video_start_at": "2026-07-15 18:00:00",
+      "prompt_file": "prompt/prompt_base.txt",
+      "enabled": true,
+      "collect_enabled": true
     }
   ]
 }
